@@ -1,0 +1,1515 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- ============ DASHBOARD VIEW ============ -->
+<section class="view active" id="view-dashboard">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="greeting">Welcome back, {{ user.username|default:"Explorer" }}</div>
+      <h1>Focus is your <span class="highlight-coral"><i>superpower</i></span>. <br>You're <span class="highlight-indigo">82%</span> through your goal.</h1>
+    </div>
+  </div>
+
+  <div class="bento">
+    <div class="stat-card c1">
+      <div class="stat-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Current XP
+      </div>
+      <div class="stat-value">12,840</div>
+      <div class="stat-sub"><span class="trend">↑ 12%</span> vs last week</div>
+    </div>
+    <div class="stat-card c2">
+      <div class="stat-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Focus Time
+      </div>
+      <div class="stat-value">24.5<span class="unit">h</span></div>
+      <div class="stat-sub"><span class="trend">↑ 4.2h</span> productive streak</div>
+    </div>
+    <div class="stat-card c3">
+      <div class="stat-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+        Test Accuracy
+      </div>
+      <div class="stat-value">88<span class="unit">%</span></div>
+      <div class="stat-sub"><span class="trend">↑ 5%</span> this week's progress</div>
+    </div>
+    <div class="stat-card c4">
+      <div class="stat-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Rank
+      </div>
+      <div class="stat-value">#42</div>
+      <div class="stat-sub">Top 1% in Global Circle</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <!-- Performance Chart -->
+    <div class="card perf-card">
+      <div class="perf-head">
+        <div>
+          <div class="card-title">Knowledge <i>Velocity</i></div>
+          <div class="card-sub">Daily progress across all modules</div>
+        </div>
+        <div class="perf-tabs">
+          <button class="perf-tab">Week</button>
+          <button class="perf-tab active">Month</button>
+          <button class="perf-tab">All</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <svg class="chart" viewBox="0 0 800 260">
+          <path d="M0,220 Q100,180 200,200 T400,120 T600,140 T800,40" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/>
+          <path d="M0,240 Q150,220 300,180 T500,160 T800,100" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="8 6" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="chart-legend">
+        <div class="lg-item"><span class="lg-dot" style="background:var(--primary);"></span> Actual Growth</div>
+        <div class="lg-item"><span class="lg-dot" style="background:var(--accent);opacity:0.5;"></span> Projected Trend</div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="card cal-card">
+      <div class="card-hd">
+        <div class="card-title">Activity</div>
+        <span class="chip">14 DAY STREAK</span>
+      </div>
+      <div class="cal-months"><span>FEB</span><span>MAR</span><span>APR</span></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend">
+        <span>Less</span>
+        <div class="cal-legend-scale">
+          <span style="background:var(--line);"></span>
+          <span style="background:#c7d2fe;"></span>
+          <span style="background:#818cf8;"></span>
+          <span style="background:#4f46e5;"></span>
+          <span style="background:var(--indigo-deep);"></span>
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+
+    <!-- Subjects -->
+    <div class="card subjects-card">
+      <div class="card-hd">
+        <div class="card-title">Subject <i>Mastery</i></div>
+        <button class="btn-ghost" style="padding:6px 12px; font-size:11px;">View All</button>
+      </div>
+      <div class="subjects">
+        <div class="subject">
+          <div class="subj-ring">
+            <svg viewBox="0 0 36 36"><path class="bg-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="fg-ring" style="stroke:var(--primary);stroke-dasharray:85, 100;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+            <div class="subj-ring-num">85</div>
+          </div>
+          <div class="subj-info"><div class="subj-name">Programming</div><div class="subj-meta">12/14 Modules</div></div>
+          <div class="subj-trend" style="color:var(--mint);">↑ 4%</div>
+        </div>
+        <div class="subject">
+          <div class="subj-ring">
+            <svg viewBox="0 0 36 36"><path class="bg-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="fg-ring" style="stroke:var(--accent);stroke-dasharray:62, 100;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+            <div class="subj-ring-num">62</div>
+          </div>
+          <div class="subj-info"><div class="subj-name">Design</div><div class="subj-meta">8/14 Modules</div></div>
+          <div class="subj-trend" style="color:var(--coral);">↓ 2%</div>
+        </div>
+        <div class="subject">
+          <div class="subj-ring">
+            <svg viewBox="0 0 36 36"><path class="bg-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="fg-ring" style="stroke:var(--success);stroke-dasharray:92, 100;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+            <div class="subj-ring-num">92</div>
+          </div>
+          <div class="subj-info"><div class="subj-name">Data Science</div><div class="subj-meta">13/14 Modules</div></div>
+          <div class="subj-trend" style="color:var(--mint);">↑ 8%</div>
+        </div>
+        <div class="subject">
+          <div class="subj-ring">
+            <svg viewBox="0 0 36 36"><path class="bg-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="fg-ring" style="stroke:var(--gold);stroke-dasharray:45, 100;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+            <div class="subj-ring-num">45</div>
+          </div>
+          <div class="subj-info"><div class="subj-name">Business</div><div class="subj-meta">4/14 Modules</div></div>
+          <div class="subj-trend" style="color:var(--mint);">↑ 12%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Plan -->
+    <div class="card plan-card">
+      <div class="card-hd">
+        <div><div class="card-title">Daily <i>Mission</i></div><div class="card-sub">3/5 Tasks completed</div></div>
+        <div class="eyebrow">20 APR</div>
+      </div>
+      <div class="plan-list">
+        <div class="plan-item done">
+          <div class="p-check on"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="p-body"><div class="p-title">Review uploaded notes</div><div class="p-meta"><span>45m</span><span>Syllabus</span></div></div>
+        </div>
+        <div class="plan-item">
+          <div class="p-check"></div>
+          <div class="p-body"><div class="p-title">Practice key concepts</div><div class="p-meta"><span>1h 20m</span><span>AI Quiz</span></div></div>
+        </div>
+        <div class="plan-item">
+          <div class="p-check"></div>
+          <div class="p-body"><div class="p-title">Write a reflection journal</div><div class="p-meta"><span>30m</span><span>Journal</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="card ach-card">
+      <div class="card-hd"><div class="card-title">Milestones</div><span class="chip new">LVL 12</span></div>
+      <div class="ach-grid">
+        <div class="ach"><div class="ach-emoji">🔥</div><div class="ach-name">7 DAY</div><div class="ach-desc">Streak</div></div>
+        <div class="ach"><div class="ach-emoji">🎯</div><div class="ach-name">BULLSEYE</div><div class="ach-desc">90% Accuracy</div></div>
+        <div class="ach locked"><div class="ach-emoji">💎</div><div class="ach-name">MASTER</div><div class="ach-desc">Top 10</div></div>
+      </div>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="card ai-card">
+      <div class="ai-badge">AI INSIGHT</div>
+      <div class="ai-insight">"You learn best in the morning. Save your toughest topics for your first session and use evenings for review."</div>
+      <button class="ai-btn" onclick="switchView('tutor')">Optimise My Schedule →</button>
+    </div>
+
+    <!-- Best Time to Study -->
+    <div class="card" id="study-time-card" style="grid-column:1/-1;padding:26px;">
+      <!-- Skeleton (shown while loading) -->
+      <div id="st-skeleton" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="height:18px;width:55%;border-radius:8px;background:var(--line);animation:pulse 1.4s ease-in-out infinite;"></div>
+        <div style="height:13px;width:35%;border-radius:6px;background:var(--line);animation:pulse 1.4s ease-in-out infinite .2s;"></div>
+        <div style="height:56px;border-radius:10px;background:var(--line);animation:pulse 1.4s ease-in-out infinite .1s;"></div>
+      </div>
+      <!-- Content (hidden until data loads) -->
+      <div id="st-content" style="display:none;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:20px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <span style="font-size:16px;">🕒</span>
+              <span style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--primary);font-family:'Space Mono',monospace;">BEST TIME TO STUDY</span>
+            </div>
+            <div id="st-message" style="font-family:'Playfair Display';font-size:18px;font-weight:700;color:var(--ink);line-height:1.35;"></div>
+            <div id="st-days" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+          </div>
+          <div style="text-align:right;min-width:120px;">
+            <div style="font-size:11px;color:var(--ink-soft);margin-bottom:6px;font-family:'Space Mono',monospace;letter-spacing:.04em;">CONFIDENCE</div>
+            <div style="height:6px;border-radius:4px;background:var(--line);overflow:hidden;width:120px;">
+              <div id="st-conf-bar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,#6366f1,#a855f7);transition:width .6s ease;width:0%;"></div>
+            </div>
+            <div id="st-conf-label" style="font-size:11px;color:var(--ink-soft);margin-top:4px;"></div>
+          </div>
+        </div>
+        <!-- 7×24 heatmap -->
+        <div style="overflow-x:auto;">
+          <div style="min-width:480px;">
+            <div style="display:flex;gap:2px;margin-bottom:4px;padding-left:32px;">
+              {% for h in st_hour_labels %}
+              <div style="flex:1;font-size:9px;color:var(--ink-soft);text-align:center;font-family:'Space Mono',monospace;">{{ h }}</div>
+              {% endfor %}
+            </div>
+            <div id="st-heatmap" style="display:flex;flex-direction:column;gap:2px;"></div>
+          </div>
+        </div>
+        <!-- warming_up fallback message -->
+      </div>
+      <!-- Warming up state -->
+      <div id="st-warming" style="display:none;text-align:center;padding:18px 0;">
+        <div style="font-size:13px;color:var(--ink-soft);" id="st-warming-msg">Analysing your study patterns…</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ TEST ARENA ============ -->
+<section class="view" id="view-tests">
+
+  <!-- ARENA LANDING — default screen -->
+  <div id="arena-landing-screen">
+    <div class="hero" style="margin-bottom:32px;">
+      <div class="hero-content">
+        <div class="greeting">Test Arena · AI-Powered Assessment</div>
+        <h1>Prove your <span class="highlight-coral"><i>mastery</i></span>. Pick your challenge.</h1>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+      <!-- Quick Quiz Card -->
+      <div class="card" style="padding:32px;border:2px solid var(--line);cursor:pointer;transition:all .2s;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='var(--line)'" onclick="showQuizSetup()">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(99,102,241,0.12);border:2px solid #6366f1;display:grid;place-items:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <span class="chip new">5–20 Qs</span>
+        </div>
+        <div style="font-family:'Playfair Display';font-size:22px;font-weight:700;margin-bottom:8px;">Quick <i>AI Quiz</i></div>
+        <p style="color:var(--ink-soft);font-size:14px;line-height:1.6;margin-bottom:24px;">Fast MCQ quiz on any topic. AI generates questions instantly — great for daily revision and topic checks.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,0.1);color:#6366f1;font-weight:600;">MCQ</span>
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,0.1);color:#6366f1;font-weight:600;">10 MIN</span>
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,0.1);color:#6366f1;font-weight:600;">ANY TOPIC</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;">Start Quick Quiz →</button>
+      </div>
+      <!-- Mock Test Card -->
+      <div class="card" style="padding:32px;border:2px solid var(--line);cursor:pointer;transition:all .2s;background:linear-gradient(160deg,rgba(251,191,36,0.04),var(--bg-soft));" onmouseenter="this.style.borderColor='var(--gold)'" onmouseleave="this.style.borderColor='var(--line)'" onclick="showMockSetup()">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(251,191,36,0.15);border:2px solid var(--gold);display:grid;place-items:center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </div>
+          <span class="chip hot">20–50 Qs</span>
+        </div>
+        <div style="font-family:'Playfair Display';font-size:22px;font-weight:700;margin-bottom:8px;">Full <i>Mock Test</i></div>
+        <p style="color:var(--ink-soft);font-size:14px;line-height:1.6;margin-bottom:24px;">Exam-style assessment with mixed question types. Simulates a real test with timed conditions and detailed analysis.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(251,191,36,0.15);color:var(--gold);font-weight:600;">MCQ</span>
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(251,191,36,0.15);color:var(--gold);font-weight:600;">TRUE/FALSE</span>
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(251,191,36,0.15);color:var(--gold);font-weight:600;">FILL BLANK</span>
+          <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(251,191,36,0.15);color:var(--gold);font-weight:600;">ASSERTION</span>
+        </div>
+        <button class="btn" style="width:100%;justify-content:center;background:var(--gold);color:#1a1a1a;border-color:var(--gold);font-weight:700;">Launch Mock Test →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SETUP SCREEN — quick quiz -->
+  <div id="quiz-setup-screen" style="display:none;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="showArenaLanding()">← Back</button>
+      <div class="eyebrow" style="color:#6366f1;">🧠 AI QUIZ GENERATOR</div>
+    </div>
+    <div style="margin-bottom:32px;">
+      <div class="greeting">AI generates your quiz from your own flashcard library</div>
+      <h2 style="font-family:'Playfair Display';font-size:30px;font-weight:700;margin:6px 0 10px;">
+        What topic do you want to <span style="font-style:italic;color:#6366f1;">test yourself</span> on?
+      </h2>
+      <p style="color:var(--ink-soft);font-size:14px;margin:0;">Pick a topic below — AI generates MCQ questions from your flashcards. Choose a count, then generate.</p>
+    </div>
+
+    <div id="topic-picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:16px;">
+      <div style="grid-column:1/-1;padding:20px;text-align:center;color:var(--ink-soft);font-size:13px;">Loading your flashcard subjects…</div>
+    </div>
+
+    <!-- Custom topic input -->
+    <div style="margin-bottom:32px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--ink-soft);">Or type any topic:</span>
+      <input id="custom-topic-input" type="text" placeholder="e.g. Data Science, Law, Marketing…"
+        style="flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:14px;"
+        oninput="selectTopic(this.value.trim(), null)">
+    </div>
+
+    <div class="card" style="padding:28px 32px;">
+      <div class="greeting" style="margin-bottom:16px;">Step 2 · Configure your quiz</div>
+      <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start;">
+        <div>
+          <div style="font-size:11px;font-family:'Space Mono';color:var(--ink-soft);margin-bottom:10px;letter-spacing:0.05em;">NUMBER OF QUESTIONS</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn qcount-opt active" onclick="setQCount(5,this)">5</button>
+            <button class="btn qcount-opt" onclick="setQCount(10,this)">10</button>
+            <button class="btn qcount-opt" onclick="setQCount(15,this)">15</button>
+            <button class="btn qcount-opt" onclick="setQCount(20,this)">20</button>
+          </div>
+        </div>
+        <div id="quiz-preview-box" style="flex:1;min-width:200px;"></div>
+      </div>
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line);">
+        <button class="btn btn-primary" id="generate-quiz-btn" disabled onclick="generateAndStart()"
+          style="width:100%;justify-content:center;padding:15px;font-size:16px;opacity:0.4;cursor:not-allowed;background:#6366f1;border-color:#6366f1;">
+          ↑ Select a topic above to continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOCK TEST SETUP SCREEN -->
+  <div id="mock-setup-screen" style="display:none;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
+      <button class="btn btn-ghost" onclick="showArenaLanding()">← Back</button>
+      <div class="eyebrow" style="color:var(--gold);">📋 FULL MOCK TEST GENERATOR</div>
+    </div>
+
+    <div style="margin-bottom:32px;">
+      <h2 style="font-family:'Playfair Display';font-size:28px;font-weight:700;margin:0 0 8px;">
+        Configure your <span style="color:var(--gold);font-style:italic;">mock test</span>
+      </h2>
+      <p style="color:var(--ink-soft);font-size:14px;margin:0;">AI generates a full exam-style paper with MCQ, True/False, Fill in the Blank, and Assertion-Reason questions.</p>
+    </div>
+
+    <!-- Step 1: Topic -->
+    <div class="card" style="padding:28px 32px;margin-bottom:20px;">
+      <div class="eyebrow" style="margin-bottom:12px;">Step 1 · Choose your topic</div>
+      <input id="mock-topic-input" type="text" placeholder="e.g. Organic Chemistry, World History, Machine Learning, Contract Law…"
+        style="width:100%;padding:14px 18px;border-radius:12px;border:2px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;font-family:'DM Sans',sans-serif;box-sizing:border-box;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--line)'"
+        oninput="updateMockPreview()">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;" id="mock-topic-suggestions">
+        <span style="font-size:12px;color:var(--ink-soft);margin-right:4px;">Suggestions:</span>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('Physics')">Physics</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('History')">History</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('Economics')">Economics</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('Biology')">Biology</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('Computer Science')">Computer Science</button>
+        <button class="btn btn-ghost" style="padding:4px 12px;font-size:12px;" onclick="setMockTopic('Mathematics')">Mathematics</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Duration -->
+    <div class="card" style="padding:28px 32px;margin-bottom:20px;">
+      <div class="eyebrow" style="margin-bottom:14px;">Step 2 · Select duration</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="mock-dur-opt btn btn-ghost" onclick="setMockDuration(30,this)" style="flex:1;min-width:80px;padding:14px;text-align:center;flex-direction:column;gap:4px;">
+          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display';">30</div>
+          <div style="font-size:11px;color:var(--ink-soft);">minutes</div>
+        </button>
+        <button class="mock-dur-opt btn btn-ghost active" onclick="setMockDuration(60,this)" style="flex:1;min-width:80px;padding:14px;text-align:center;flex-direction:column;gap:4px;border-color:var(--gold);background:rgba(251,191,36,0.1);">
+          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display';">60</div>
+          <div style="font-size:11px;color:var(--ink-soft);">minutes</div>
+        </button>
+        <button class="mock-dur-opt btn btn-ghost" onclick="setMockDuration(90,this)" style="flex:1;min-width:80px;padding:14px;text-align:center;flex-direction:column;gap:4px;">
+          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display';">90</div>
+          <div style="font-size:11px;color:var(--ink-soft);">minutes</div>
+        </button>
+        <button class="mock-dur-opt btn btn-ghost" onclick="setMockDuration(120,this)" style="flex:1;min-width:80px;padding:14px;text-align:center;flex-direction:column;gap:4px;">
+          <div style="font-size:20px;font-weight:700;font-family:'Playfair Display';">120</div>
+          <div style="font-size:11px;color:var(--ink-soft);">minutes</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Question Type Counts -->
+    <div class="card" style="padding:28px 32px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+        <div class="eyebrow">Step 3 · Questions per type</div>
+        <div style="font-size:13px;color:var(--ink-soft);">Total: <span id="mock-total-badge" style="font-weight:700;color:var(--ink);">30</span> questions</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <!-- MCQ -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(99,102,241,0.4);background:rgba(99,102,241,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#6366f1;">MCQ</div>
+              <div style="font-size:11px;color:var(--ink-soft);">4 options each</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('mcq',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-mcq-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">12</span>
+              <button onclick="adjustMockType('mcq',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-mcq-range" min="0" max="30" value="12"
+            oninput="syncMockType('mcq',this.value)"
+            style="width:100%;accent-color:#6366f1;">
+        </div>
+
+        <!-- True/False -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--mint);">TRUE / FALSE</div>
+              <div style="font-size:11px;color:var(--ink-soft);">2 options each</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('tf',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-tf-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">8</span>
+              <button onclick="adjustMockType('tf',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-tf-range" min="0" max="30" value="8"
+            oninput="syncMockType('tf',this.value)"
+            style="width:100%;accent-color:var(--mint);">
+        </div>
+
+        <!-- Fill in the Blank -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(251,191,36,0.4);background:rgba(251,191,36,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--gold);">FILL IN BLANK</div>
+              <div style="font-size:11px;color:var(--ink-soft);">complete the gap</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('fitb',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-fitb-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">6</span>
+              <button onclick="adjustMockType('fitb',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-fitb-range" min="0" max="30" value="6"
+            oninput="syncMockType('fitb',this.value)"
+            style="width:100%;accent-color:var(--gold);">
+        </div>
+
+        <!-- Assertion-Reason -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(251,113,133,0.4);background:rgba(251,113,133,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--coral);">ASSERTION-REASON</div>
+              <div style="font-size:11px;color:var(--ink-soft);">evaluate 2 statements</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('ar',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-ar-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">4</span>
+              <button onclick="adjustMockType('ar',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-ar-range" min="0" max="20" value="4"
+            oninput="syncMockType('ar',this.value)"
+            style="width:100%;accent-color:var(--coral);">
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Generate Button -->
+    <div class="card" style="padding:24px 32px;background:linear-gradient(160deg,rgba(251,191,36,0.08),var(--bg-soft));border:2px solid var(--gold);">
+      <div id="mock-preview" style="margin-bottom:16px;">
+        <div style="color:var(--ink-soft);font-size:13px;">Fill in the topic above to generate.</div>
+      </div>
+      <button class="btn" id="generate-mock-btn" disabled onclick="generateMock()"
+        style="width:100%;justify-content:center;padding:16px;font-size:16px;font-weight:700;background:var(--gold);color:#1a1a1a;border-color:var(--gold);opacity:0.4;cursor:not-allowed;">
+        ↑ Enter a topic to generate your mock test
+      </button>
+    </div>
+  </div>
+
+  <!-- TEST HUB (hidden by default) -->
+  <div id="test-hub-screen" style="display:none;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
+      <button class="btn btn-ghost" onclick="showArenaLanding()">← Back</button>
+      <div class="eyebrow">PRACTICE TESTS</div>
+    </div>
+    <div class="hero" style="margin-bottom:28px;">
+      <div class="hero-content">
+        <div class="greeting">Practice Tests · Static test packs</div>
+        <h1>Pick a <span class="highlight-coral">challenge</span>. Prove you <i>know it</i>.</h1>
+      </div>
+    </div>
+    <div class="test-hub">
+      <div class="test-card c1" onclick="startTest()">
+        <div class="test-hd"><div class="test-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31M14 9.3V2M8.5 2h7M14 9.3l5.5 9.5a2 2 0 01-1.73 3H6.23A2 2 0 014.5 18.8L10 9.3"/></svg></div><span class="chip">30 MIN</span></div>
+        <div><div class="test-name">Active Theory<br>Application</div><div class="test-desc">Targets your weak zones with adaptive questions</div></div>
+        <div class="test-foot"><span class="test-qs">8 questions · Analysis</span><div class="test-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+      </div>
+      <div class="test-card c2" onclick="startTest()">
+        <div class="test-hd"><div class="test-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><span class="chip">15 MIN</span></div>
+        <div><div class="test-name">Quick<br>Knowledge Check</div><div class="test-desc">Rapid-fire warm-up before your study block</div></div>
+        <div class="test-foot"><span class="test-qs">8 questions · Mixed</span><div class="test-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+      </div>
+    </div>
+    <div style="margin-top:32px;padding:24px 28px;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.04));border:2px solid #6366f1;border-radius:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+      <div>
+        <div class="eyebrow" style="color:#6366f1;">AI-POWERED</div>
+        <h3 style="font-family:'Playfair Display';font-size:20px;margin:6px 0;font-weight:700;">Generate a quiz on <i>any topic</i></h3>
+        <p style="font-size:13px;color:var(--ink-soft);margin:0;">AI builds questions from your flashcard library with score prediction.</p>
+      </div>
+      <button class="btn btn-primary" style="padding:12px 24px;background:#6366f1;border-color:#6366f1;" onclick="showQuizSetup()">Pick Topic & Generate Quiz →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" style="display:none;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <button class="btn btn-ghost" onclick="exitTest()">← Exit</button>
+      <div class="eyebrow" id="quiz-screen-label">Test in progress · Auto-saved</div>
+    </div>
+    <div class="quiz-layout">
+      <div class="card quiz-card">
+        <div class="quiz-head">
+          <div class="quiz-title-wrap">
+            <span class="eyebrow" id="q-count-lbl">Question 1 of 5</span>
+            <div class="quiz-title" id="q-chapter">AI Quiz</div>
+          </div>
+          <div class="timer"><span class="timer-dot"></span><span id="timer">10:00</span></div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:20%;"></div></div>
+        <div class="quiz-body">
+          <div class="q-num"><span class="cur" id="q-num-cur">Q.01</span> <span class="diff" id="q-diff">MEDIUM · +4/−1</span></div>
+          <div class="q-text" id="q-text"></div>
+          <div class="options" id="q-options"></div>
+          <div class="feedback" id="feedback">
+            <div class="fb-title" id="fb-title"></div>
+            <div class="fb-text" id="fb-text"></div>
+          </div>
+        </div>
+        <div class="quiz-foot">
+          <div style="display:flex;gap:12px;align-items:center;">
+            <span style="font-size:11px;font-family:'Space Mono';color:var(--ink-soft);">SHORTCUTS:</span>
+            <span style="font-size:11px;color:var(--ink-soft);">← → navigate · F flag</span>
+          </div>
+          <div class="q-map" id="qMap"></div>
+          <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">Next →</button>
+        </div>
+      </div>
+
+      <aside class="qside">
+        <div class="card">
+          <h4>Test summary</h4>
+          <div class="mini-row"><span class="k">Answered</span><span class="v" id="ms-answered">0 / 5</span></div>
+          <div class="mini-row"><span class="k">Correct</span><span class="v" id="ms-correct" style="color:var(--mint);">0</span></div>
+          <div class="mini-row"><span class="k">Wrong</span><span class="v" id="ms-wrong" style="color:var(--coral);">0</span></div>
+          <div class="mini-row"><span class="k">Flagged</span><span class="v" id="ms-flag">0</span></div>
+          <div class="mini-row"><span class="k">Avg time / Q</span><span class="v" id="ms-avg">—</span></div>
+          <div class="mini-row"><span class="k">Marks</span><span class="v" id="ms-marks" style="color:var(--primary);">0</span></div>
+        </div>
+
+        <div class="card" id="ml-prediction-card" style="display:none;background:linear-gradient(160deg,rgba(99,102,241,0.15),var(--bg-soft));border:2px solid #6366f1;">
+          <div class="eyebrow" style="color:#6366f1;">AI PREDICTION</div>
+          <h4 style="margin-top:6px;margin-bottom:6px;">Expected Score</h4>
+          <div style="font-size:30px;font-family:'Playfair Display';font-weight:700;color:#6366f1;line-height:1.1;" id="ml-pred-score">--</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:6px;" id="ml-pred-accuracy">—</div>
+          <div style="font-size:11px;font-style:italic;color:var(--ink-soft);margin-top:4px;" id="ml-pred-confidence"></div>
+        </div>
+
+        <div class="card" style="background:linear-gradient(160deg,rgba(99,102,241,0.2),rgba(168,85,247,0.15));border-color:var(--primary);">
+          <h4>AI Hint</h4>
+          <p style="font-size:13px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px;" id="hintPreview">Stuck? I'll nudge you in the right direction.</p>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showHint()">💡 Reveal hint</button>
+        </div>
+
+        <button class="btn" style="width:100%;justify-content:center;background:var(--coral);color:#fff;border-color:var(--coral);" onclick="submitTest()">Submit Test</button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" style="display:none;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <button class="btn btn-ghost" onclick="exitTest()">← Back to Arena</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div class="result-hero" style="background:linear-gradient(180deg,rgba(254,243,199,0.3),var(--bg-soft));">
+        <div class="result-trophy" id="resultEmoji">🎉</div>
+        <div class="eyebrow">ASSESSMENT COMPLETE</div>
+        <div class="result-big"><span id="resultScore">0</span><span class="of"> / 20</span></div>
+        <div class="result-sub" id="resultMsg">Nice work! Here's your breakdown.</div>
+      </div>
+
+      <div style="padding:28px 40px 40px;">
+        <div class="result-stats">
+          <div class="rs-cell good"><div class="rs-num" id="rs-correct">0</div><div class="rs-lbl">Correct</div></div>
+          <div class="rs-cell bad"><div class="rs-num" id="rs-wrong">0</div><div class="rs-lbl">Wrong</div></div>
+          <div class="rs-cell neutral"><div class="rs-num" id="rs-skip">0</div><div class="rs-lbl">Skipped</div></div>
+          <div class="rs-cell gold"><div class="rs-num" id="rs-accuracy">0%</div><div class="rs-lbl">Accuracy</div></div>
+        </div>
+
+        <div id="ai-insights-panel" style="display:none;background:linear-gradient(160deg,rgba(99,102,241,0.12),var(--bg-soft));border:1px solid #6366f1;border-radius:12px;padding:24px;margin-top:24px;">
+          <div class="eyebrow" style="color:#6366f1;">AI INSIGHTS</div>
+          <h4 style="margin-top:6px;margin-bottom:18px;">Prediction vs Reality</h4>
+          <div class="result-stats" style="grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="rs-cell neutral"><div class="rs-num" id="ai-pred-score">--</div><div class="rs-lbl">AI Predicted</div></div>
+            <div class="rs-cell gold"><div class="rs-num" id="ai-actual-score">--</div><div class="rs-lbl">Your Actual</div></div>
+          </div>
+          <div style="margin-top:14px;" id="ai-topic-focus"></div>
+          <div style="margin-top:8px;font-size:13px;color:var(--ink-soft);" id="ai-next-review"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px;">
+          <div class="card" style="padding:20px;box-shadow:none;">
+            <div class="eyebrow">Time analysis</div>
+            <div class="card-title" style="margin-top:6px;margin-bottom:14px;"><i>Pace</i> report</div>
+            <div class="mini-row"><span class="k">Total time</span><span class="v" id="rs-time">0:00</span></div>
+            <div class="mini-row"><span class="k">Avg / question</span><span class="v" id="rs-avgTime">0:00</span></div>
+          </div>
+          <div class="card" style="padding:20px;box-shadow:none;background:linear-gradient(160deg,rgba(52,211,153,0.1),rgba(236,252,203,0.5));">
+            <div class="eyebrow">What's next</div>
+            <div class="card-title" style="margin-top:6px;margin-bottom:14px;">Keep the <i>momentum</i></div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <button class="btn btn-primary" style="justify-content:flex-start;" onclick="retryQuiz()">🔁 Retry same quiz</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="exitTest()">🎯 Pick a different topic</button>
+              <button class="btn btn-ghost" style="justify-content:flex-start;" onclick="switchView('tutor')">💬 Ask AI Tutor</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ FLASHCARDS ============ -->
+<section class="view" id="view-flashcards">
+
+  <!-- Page header -->
+  <div style="margin-bottom:28px;">
+    <h1 style="font-family:'Playfair Display';font-size:28px;font-weight:700;color:var(--ink);margin:0 0 6px;">
+      Flashcards
+    </h1>
+    <p style="color:var(--ink-soft);font-size:14px;margin:0;">Spaced repetition powered by SM-2 — study smarter, not harder.</p>
+  </div>
+
+  <!-- Stats row -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;" id="fc-stats-bar">
+    <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:18px 20px;">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.06em;margin-bottom:6px;">TOTAL CARDS</div>
+      <div style="font-size:26px;font-weight:700;font-family:'Playfair Display';color:var(--ink);" id="fc-total">—</div>
+    </div>
+    <div style="background:rgba(251,113,133,0.08);border:1.5px solid rgba(251,113,133,0.3);border-radius:14px;padding:18px 20px;">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--coral);letter-spacing:.06em;margin-bottom:6px;">DUE NOW</div>
+      <div style="font-size:26px;font-weight:700;font-family:'Playfair Display';color:var(--coral);" id="fc-due">—</div>
+    </div>
+    <div style="background:rgba(251,191,36,0.08);border:1.5px solid rgba(251,191,36,0.3);border-radius:14px;padding:18px 20px;">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--gold);letter-spacing:.06em;margin-bottom:6px;">DUE IN 3 DAYS</div>
+      <div style="font-size:26px;font-weight:700;font-family:'Playfair Display';color:var(--gold);" id="fc-upcoming">—</div>
+    </div>
+    <div style="background:rgba(52,211,153,0.08);border:1.5px solid rgba(52,211,153,0.3);border-radius:14px;padding:18px 20px;">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--mint);letter-spacing:.06em;margin-bottom:6px;">AVG RECALL</div>
+      <div style="font-size:26px;font-weight:700;font-family:'Playfair Display';color:var(--mint);" id="fc-recall">—</div>
+    </div>
+  </div>
+
+  <!-- AI Flash Generator — full width -->
+  <div style="background:linear-gradient(135deg,rgba(99,102,241,0.07),rgba(168,85,247,0.05));border:2px solid rgba(99,102,241,0.25);border-radius:18px;padding:28px;margin-bottom:24px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div style="font-size:18px;font-weight:700;font-family:'Playfair Display';color:var(--ink);margin-bottom:4px;">AI Flash Generator</div>
+        <div style="font-size:13px;color:var(--ink-soft);">Enter any topic — AI writes the flashcards for you</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;letter-spacing:.04em;white-space:nowrap;">⚡ AI POWERED</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 120px 140px auto;gap:12px;align-items:flex-end;">
+      <div>
+        <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.05em;">TOPIC</div>
+        <input id="fc-gen-topic" type="text" placeholder="e.g. Photosynthesis, Python OOP, French Revolution…"
+          style="width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;box-sizing:border-box;outline:none;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.05em;">CARDS</div>
+        <select id="fc-gen-count" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);margin-bottom:6px;letter-spacing:.05em;">DIFFICULTY</div>
+        <select id="fc-gen-difficulty" style="width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;">
+          <option value="mixed" selected>Mixed</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <button id="fc-gen-btn" onclick="fcGenerateCards()"
+        style="padding:12px 24px;border-radius:12px;background:#6366f1;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Generate
+      </button>
+    </div>
+    <div id="fc-gen-status" style="margin-top:14px;display:none;font-size:13px;color:var(--ink-soft);"></div>
+  </div>
+
+  <!-- Add Card + Study Session — two columns -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+
+    <!-- Add Card -->
+    <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:26px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="font-size:17px;font-weight:700;font-family:'Playfair Display';color:var(--ink);">Add New Card</div>
+        <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,0.1);color:#6366f1;letter-spacing:.04em;">MANUAL</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.05em;display:block;margin-bottom:6px;">SUBJECT</label>
+          <input id="fc-subject" type="text" placeholder="e.g. Biology, History, Python…"
+            style="width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;box-sizing:border-box;outline:none;">
+        </div>
+        <div>
+          <label style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.05em;display:block;margin-bottom:6px;">FRONT — Question / Term</label>
+          <textarea id="fc-front" rows="2" placeholder="What is photosynthesis?"
+            style="width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.05em;display:block;margin-bottom:6px;">BACK — Answer / Definition</label>
+          <textarea id="fc-back" rows="2" placeholder="The process by which plants convert sunlight into food…"
+            style="width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:14px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none;"></textarea>
+        </div>
+        <button onclick="fcCreateCard()"
+          style="width:100%;padding:13px;border-radius:12px;background:#6366f1;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;">
+          + Add Flashcard
+        </button>
+      </div>
+    </div>
+
+    <!-- Study Session -->
+    <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:26px;" id="fc-study-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="font-size:17px;font-weight:700;font-family:'Playfair Display';color:var(--ink);">Study Session</div>
+        <span id="fc-due-chip" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:rgba(251,113,133,0.12);color:var(--coral);letter-spacing:.04em;">0 DUE</span>
+      </div>
+
+      <!-- Flip card -->
+      <div id="fc-card-area" style="display:none;">
+        <div id="fc-card" onclick="fcFlipCard()"
+          style="background:linear-gradient(135deg,rgba(99,102,241,0.05),rgba(168,85,247,0.04));border:1.5px solid rgba(99,102,241,0.2);border-radius:14px;padding:28px 24px;text-align:center;min-height:130px;cursor:pointer;transition:border-color .2s,box-shadow .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;">
+          <div style="font-size:10px;font-family:'Space Mono',monospace;color:#6366f1;letter-spacing:.08em;" id="fc-card-subject">—</div>
+          <div style="font-size:17px;font-weight:600;color:var(--ink);line-height:1.5;" id="fc-card-text">—</div>
+          <div style="font-size:12px;color:var(--ink-soft);border:1px dashed var(--line);border-radius:8px;padding:4px 12px;" id="fc-flip-hint">Tap to reveal answer</div>
+        </div>
+        <div id="fc-grade-btns" style="display:none;margin-top:16px;">
+          <div style="font-size:12px;color:var(--ink-soft);text-align:center;margin-bottom:10px;font-family:'Space Mono',monospace;letter-spacing:.04em;">HOW WELL DID YOU RECALL?</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+            <button onclick="fcGrade(1)" style="padding:11px 6px;border-radius:11px;background:rgba(251,113,133,0.15);color:var(--coral);border:1.5px solid rgba(251,113,133,0.3);font-size:12px;font-weight:700;cursor:pointer;line-height:1.4;">Again<br><span style="font-size:10px;font-weight:400;">&lt;10 min</span></button>
+            <button onclick="fcGrade(2)" style="padding:11px 6px;border-radius:11px;background:rgba(251,191,36,0.15);color:var(--gold);border:1.5px solid rgba(251,191,36,0.3);font-size:12px;font-weight:700;cursor:pointer;line-height:1.4;">Hard<br><span style="font-size:10px;font-weight:400;">2× interval</span></button>
+            <button onclick="fcGrade(3)" style="padding:11px 6px;border-radius:11px;background:rgba(99,102,241,0.12);color:#6366f1;border:1.5px solid rgba(99,102,241,0.25);font-size:12px;font-weight:700;cursor:pointer;line-height:1.4;">Good<br><span style="font-size:10px;font-weight:400;">Normal</span></button>
+            <button onclick="fcGrade(5)" style="padding:11px 6px;border-radius:11px;background:rgba(52,211,153,0.15);color:var(--mint);border:1.5px solid rgba(52,211,153,0.3);font-size:12px;font-weight:700;cursor:pointer;line-height:1.4;">Easy<br><span style="font-size:10px;font-weight:400;">4× interval</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- All caught up -->
+      <div id="fc-no-cards" style="text-align:center;padding:28px 0;color:var(--ink-soft);">
+        <div style="font-size:40px;margin-bottom:10px;">✓</div>
+        <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">All caught up!</div>
+        <div style="font-size:13px;">No cards due right now. Great work.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card Library — full width -->
+  <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:26px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:17px;font-weight:700;font-family:'Playfair Display';color:var(--ink);">Card Library</div>
+      <select id="fc-filter-subject" onchange="fcLoadCards()"
+        style="padding:8px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:13px;outline:none;">
+        <option value="">All Subjects</option>
+      </select>
+    </div>
+    <div id="fc-card-list" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:20px;">Loading cards…</div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ VIDEO LIBRARY ============ -->
+<section class="view" id="view-videos">
+
+  <!-- Page header -->
+  <div style="margin-bottom:28px;">
+    <h1 style="font-family:'Playfair Display';font-size:28px;font-weight:700;color:var(--ink);margin:0 0 6px;">
+      Video Library
+    </h1>
+    <p style="color:var(--ink-soft);font-size:14px;margin:0;">AI finds the best YouTube lectures for any topic — from top educators worldwide.</p>
+  </div>
+
+  <!-- Search bar -->
+  <div style="background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:28px;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:flex-end;margin-bottom:20px;">
+      <div>
+        <label style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.06em;display:block;margin-bottom:8px;">TOPIC</label>
+        <input id="vid-topic-input" type="text" placeholder="e.g. Quantum Physics, Machine Learning, French Revolution, Calculus…"
+          onkeydown="if(event.key==='Enter') searchVideos()"
+          style="width:100%;padding:13px 18px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:#000;font-size:15px;box-sizing:border-box;outline:none;">
+      </div>
+      <button id="vid-search-btn" onclick="searchVideos()"
+        style="padding:13px 28px;border-radius:12px;background:#6366f1;color:#fff;border:none;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Find Videos
+      </button>
+    </div>
+
+    <!-- Quick topic chips -->
+    <div>
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--ink-soft);letter-spacing:.06em;margin-bottom:10px;">POPULAR TOPICS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;" id="vid-topic-chips">
+        {% for chip in vid_topic_chips %}
+        <button onclick="quickVideoSearch('{{ chip }}')"
+          style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink-soft);font-size:12px;cursor:pointer;transition:all .15s;"
+          onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1';this.style.background='rgba(99,102,241,0.08)'"
+          onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--ink-soft)';this.style.background='var(--bg-soft)'">
+          {{ chip }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Results area -->
+  <div id="vid-results-area">
+    <!-- Default empty state -->
+    <div id="vid-empty-state" style="text-align:center;padding:60px 24px;color:var(--ink-soft);">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:.3;margin-bottom:16px;"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33 2.78 2.78 0 001.94 2C5.12 19.5 12 19.5 12 19.5s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.33 29 29 0 00-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+      <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px;">Search for a topic to get started</div>
+      <div style="font-size:13px;">AI will recommend the best YouTube lectures for you</div>
+    </div>
+
+    <!-- Loading state (hidden by default) -->
+    <div id="vid-loading" style="display:none;text-align:center;padding:60px 24px;color:var(--ink-soft);">
+      <div style="font-size:13px;margin-bottom:8px;">Finding the best videos for you…</div>
+      <div style="font-size:12px;color:var(--ink-soft);opacity:.6;">This takes about 5–10 seconds</div>
+    </div>
+
+    <!-- Video grid (hidden by default) -->
+    <div id="vid-grid" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div id="vid-results-label" style="font-size:14px;font-weight:600;color:var(--ink);"></div>
+      </div>
+      <div id="vid-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;"></div>
+    </div>
+
+    <!-- Error state (hidden by default) -->
+    <div id="vid-error" style="display:none;text-align:center;padding:48px 24px;">
+      <div id="vid-error-msg" style="font-size:14px;color:var(--coral);margin-bottom:12px;"></div>
+      <button onclick="searchVideos()" style="padding:10px 24px;border-radius:10px;background:#6366f1;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;">Try Again</button>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ============ BILLING ============ -->
+<section class="view" id="view-billing">
+  <div class="hero">
+    <div class="hero-content">
+      <h1>Unlock your <span class="highlight-coral"><i>potential</i></span>.</h1>
+      <p style="color:var(--ink-soft); margin-top:8px;">Choose the plan that fits your study goals.</p>
+    </div>
+  </div>
+  <div class="dash-grid" style="gap:24px;">
+    <div class="card" style="padding:40px; border-color:var(--line);">
+      <div class="eyebrow" style="margin-bottom:8px;">FREE</div>
+      <div style="font-size:42px; font-weight:700; color:var(--ink); margin-bottom:4px;">₹0<span style="font-size:16px; font-weight:400; color:var(--ink-soft);">/month</span></div>
+      <p style="color:var(--ink-soft); margin-bottom:24px;">Perfect for getting started.</p>
+      <div class="plan-list" style="margin-bottom:24px;">
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ 5,000 Free Tokens/month</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Basic flashcards</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Journal (5 entries)</div></div></div>
+      </div>
+      <button class="btn btn-ghost" style="width:100%; justify-content:center; opacity:0.5;" disabled>Current Plan</button>
+    </div>
+    <div class="card" style="padding:40px; border-color:var(--primary); box-shadow: 0 0 40px var(--primary-glow);">
+      <div class="eyebrow" style="margin-bottom:8px; color:var(--primary);">PRO ⚡</div>
+      <div style="font-size:42px; font-weight:700; color:var(--ink); margin-bottom:4px;">₹499<span style="font-size:16px; font-weight:400; color:var(--ink-soft);">/month</span></div>
+      <p style="color:var(--ink-soft); margin-bottom:24px;">For serious learners.</p>
+      <div class="plan-list" style="margin-bottom:24px;">
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ 50,000 Tokens/month</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Full mock tests</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Unlimited journal</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Priority AI responses</div></div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center;">Upgrade to Pro →</button>
+    </div>
+    <div class="card" style="padding:40px; border-color:var(--gold);">
+      <div class="eyebrow" style="margin-bottom:8px; color:var(--gold);">ELITE 💎</div>
+      <div style="font-size:42px; font-weight:700; color:var(--ink); margin-bottom:4px;">₹999<span style="font-size:16px; font-weight:400; color:var(--ink-soft);">/month</span></div>
+      <p style="color:var(--ink-soft); margin-bottom:24px;">Maximum power.</p>
+      <div class="plan-list" style="margin-bottom:24px;">
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Unlimited Tokens</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ 1-on-1 AI tutoring</div></div></div>
+        <div class="plan-item" style="padding:8px 0;"><div class="p-body"><div class="p-title">✓ Performance analytics</div></div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; background:var(--gold); border-color:var(--gold);">Go Elite →</button>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-tutor">
+    <div class="hero" style="margin-bottom:24px;">
+      <div class="greeting">AI Tutor · Any Subject · Any Domain · Any Level</div>
+      <h1>Meet <span class="highlight-plum"><i>Sage</i></span>, your 24/7 learning companion.</h1>
+    </div>
+    <div class="chat-layout">
+      <aside class="chat-side">
+        <button class="chat-new" onclick="newChat()">+ New conversation</button>
+        <div class="chat-history" id="chat-history-list">
+          <div class="chat-history-label" style="color:var(--ink-soft);font-size:11px;">Loading...</div>
+        </div>
+      </aside>
+      <div class="chat-main">
+        <div class="chat-top">
+          <div class="chat-top-title">
+            <div class="bot-avatar">S</div>
+            <div class="bot-info"><div class="bot-name">Sage AI</div><div class="bot-status">ONLINE</div></div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">
+            <div class="msg-avatar">S</div>
+            <div class="msg-bubble">Hey! 👋 I'm Sage — your AI learning companion. I can help you with <strong>any subject or domain</strong>: science, tech, law, medicine, design, business, languages, arts, history, coding, finance, and more. What are you working on?</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chatInput" placeholder="Ask Sage anything..." rows="1"></textarea>
+            <button class="chat-send" id="chatSend" onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+
+<section class="view" id="view-journal">
+    <div class="hero">
+      <div class="hero-content">
+        <h1>Document your <span class="highlight-plum"><i>growth</i></span>.</h1>
+      </div>
+    </div>
+    <div class="journal-layout">
+      <aside class="journal-sidebar">
+        <button class="btn btn-primary" style="width:100%; margin-bottom:16px;" onclick="createNewJournal()">+ New Entry</button>
+        <div class="nav-section-title" style="padding:0; margin-bottom:8px;">Recent Entries</div>
+        <div id="journal-list">
+          <!-- Journals go here -->
+        </div>
+      </aside>
+      <main class="j-main">
+        <div style="display:flex; gap:12px; margin-bottom:12px;">
+          <input class="j-editor-title" placeholder="Entry Title..." style="flex:1;">
+          <select id="j-mood-select" style="background:var(--bg-card); border:1.5px solid var(--line); border-radius:10px; padding:0 12px; color:var(--ink); font-size:13px; outline:none;">
+            <option value="">No Category</option>
+            <option value="Study">📚 Study</option>
+            <option value="Idea">💡 Idea</option>
+            <option value="Goal">🎯 Goal</option>
+            <option value="Note">📝 Note</option>
+            <option value="Personal">🌱 Personal</option>
+          </select>
+        </div>
+        <textarea class="j-editor-body" placeholder="Start writing..."></textarea>
+        <div class="j-toolbar">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); cursor:pointer;">
+              <input type="checkbox" id="j-is-protected"> Password Protect
+            </label>
+            <input type="password" id="j-entry-password" placeholder="Set password..." style="display:none; background:var(--bg-card); border:1.5px solid var(--line); border-radius:6px; padding:6px 10px; font-size:12px; color:var(--ink);">
+          </div>
+          <button class="btn btn-primary" onclick="saveJournal()">Save Entry</button>
+          <button class="btn btn-ghost" onclick="deleteJournal()" style="color:var(--accent);">Delete</button>
+        </div>
+      </main>
+    </div>
+</section>
+
+<!-- ============ SYLLABUS VIEW ============ -->
+<section class="view" id="view-syllabus">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="greeting">My Plan · AI-Powered Study Plans</div>
+      <h1>Your study <span class="highlight-sunset"><i>material</i></span>, <br>organized & supercharged.</h1>
+    </div>
+  </div>
+
+  <div class="syllabus-layout">
+    <!-- Syllabus List Sidebar -->
+    <aside class="syllabus-sidebar">
+      <button class="btn btn-primary" style="width:100%; margin-bottom:16px;" onclick="createNewSyllabus()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Plan
+      </button>
+      <div class="nav-section-title" style="padding:0; margin-bottom:8px;">Your Plans</div>
+      <div id="syllabus-list">
+        <div class="syl-empty-state">
+          <div style="font-size:36px; margin-bottom:8px;">📚</div>
+          <div style="font-size:13px; color:var(--ink-soft);">No plans yet. Create one to get started!</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Syllabus Editor -->
+    <main class="syl-main" id="syl-main">
+      <!-- Empty state -->
+      <div class="syl-empty-editor" id="syl-empty-editor">
+        <div class="syl-empty-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1" opacity="0.5">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:24px; margin-bottom:8px;">Select or create a plan</h3>
+        <p style="color:var(--ink-soft); font-size:14px; max-width:400px;">Add notes, PDFs, links, audio, video — for any subject, course, skill, or professional domain. Sage AI generates a personalised learning plan from your material.</p>
+      </div>
+
+      <!-- Active syllabus editor (hidden by default) -->
+      <div class="syl-editor" id="syl-editor" style="display:none;">
+        <!-- Header -->
+        <div class="syl-editor-header">
+          <div style="flex:1;">
+            <input class="syl-title-input" id="syl-title" placeholder="Plan Title...">
+            <div style="display:flex; gap:12px; margin-top:8px;">
+              <input class="syl-meta-input" id="syl-subject" placeholder="Domain / Subject (e.g., Python, Law, Marketing, Medicine, Design, Finance…)">
+              <input class="syl-meta-input" id="syl-description" placeholder="Brief description..." style="flex:2;">
+            </div>
+          </div>
+          <div class="syl-header-actions">
+            <button class="btn btn-primary syl-save-btn" onclick="saveSyllabusInfo()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save
+            </button>
+            <button class="btn btn-ghost syl-delete-btn" onclick="deleteSyllabus()" style="color:var(--accent);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="syl-tab-bar">
+          <button class="syl-tab-btn active" id="syl-tab-notes" onclick="sylSwitchTab('notes')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Notes &amp; Materials
+          </button>
+          <button class="syl-tab-btn" id="syl-tab-tracker" onclick="sylSwitchTab('tracker')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Study Tracker
+          </button>
+        </div>
+
+        <!-- ── NOTES PANEL ─────────────────────────────────────────────── -->
+        <div id="syl-notes-panel">
+
+        <!-- Add content controls -->
+        <div class="syl-add-controls">
+          <div class="syl-add-group">
+            <button class="syl-add-btn" onclick="showAddNoteForm()" id="syl-btn-note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Add Note
+            </button>
+            <button class="syl-add-btn" onclick="showAddImageForm()" id="syl-btn-image">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Add Image
+            </button>
+            <button class="syl-add-btn" onclick="showAddFileForm()" id="syl-btn-file">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Add File
+            </button>
+            <button class="syl-add-btn" onclick="showAddFileForm('pdf')" id="syl-btn-pdf">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+              Add PDF
+            </button>
+            <button class="syl-add-btn" onclick="showAddFileForm('audio')" id="syl-btn-audio">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              Add Audio
+            </button>
+            <button class="syl-add-btn" onclick="showAddFileForm('video')" id="syl-btn-video">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Add Video
+            </button>
+            <button class="syl-add-btn" onclick="showAddLinkForm()" id="syl-btn-link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Add Link
+            </button>
+            <button class="syl-add-btn syl-ai-btn" onclick="generateInsights()" id="syl-btn-insights">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+              ✨ Generate AI Study Plan
+            </button>
+            <button class="syl-add-btn syl-monthly-btn" onclick="showMonthlyPlanForm()" id="syl-btn-monthly">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              📅 Monthly Plan
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Note Form (hidden by default) -->
+        <div class="syl-note-form" id="syl-note-form" style="display:none;">
+          <textarea class="syl-note-textarea" id="syl-note-text" placeholder="Type anything here — lecture notes, concepts, code snippets, case summaries, vocabulary, recipes, research findings, chapter summaries, or any material you want to learn." rows="5"></textarea>
+          <div class="syl-note-actions">
+            <button class="btn btn-primary" onclick="addTextNote()">Add Note</button>
+            <button class="btn btn-ghost" onclick="hideAddForms()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Add Image Form (hidden by default) -->
+        <div class="syl-image-form" id="syl-image-form" style="display:none;">
+          <div class="syl-dropzone" id="syl-dropzone" onclick="document.getElementById('syl-image-input').click()">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <div style="margin-top:12px; font-size:14px; color:var(--ink-soft);">Click to upload or drag & drop images</div>
+            <div style="font-size:11px; color:var(--ink-soft); opacity:0.6; margin-top:4px;">PNG, JPG, GIF, WEBP up to 10MB</div>
+            <input type="file" id="syl-image-input" accept="image/*" style="display:none;" onchange="previewImage(event)">
+          </div>
+          <div id="syl-image-preview" style="display:none;">
+            <img id="syl-preview-img" style="max-width:100%; max-height:200px; border-radius:12px; border:2px solid var(--line);">
+          </div>
+          <input class="syl-meta-input" id="syl-image-caption" placeholder="Image caption (optional)" style="margin-top:12px; width:100%;">
+          <div class="syl-note-actions">
+            <button class="btn btn-primary" onclick="addImageNote()">Upload Image</button>
+            <button class="btn btn-ghost" onclick="hideAddForms()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Add File Form (hidden by default) -->
+        <div class="syl-image-form" id="syl-file-form" style="display:none;">
+          <div class="syl-dropzone" id="syl-file-dropzone" onclick="document.getElementById('syl-file-input').click()">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
+            <div data-file-label style="margin-top:12px; font-size:14px; color:var(--ink-soft);">Click to upload or drag & drop any file</div>
+            <div data-file-hint style="font-size:11px; color:var(--ink-soft); opacity:0.6; margin-top:4px;">PDF, DOCX, PPTX, XLSX, ZIP, TXT, code files — any format</div>
+            <input type="file" id="syl-file-input" style="display:none;" onchange="previewFile(event)">
+          </div>
+          <div id="syl-file-preview" class="syl-file-preview-card" style="display:none;">
+            <div class="syl-fp-icon" id="syl-fp-icon">📄</div>
+            <div class="syl-fp-info">
+              <div class="syl-fp-name" id="syl-fp-name">filename.pdf</div>
+              <div class="syl-fp-size" id="syl-fp-size">2.4 MB</div>
+            </div>
+          </div>
+          <input class="syl-meta-input" id="syl-file-caption" placeholder="Description / notes about this file (optional)" style="margin-top:12px; width:100%;">
+          <div class="syl-note-actions">
+            <button class="btn btn-primary" data-upload-btn onclick="addFileNote()">Upload File</button>
+            <button class="btn btn-ghost" onclick="hideAddForms()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Add Link Form (hidden by default) -->
+        <div class="syl-note-form" id="syl-link-form" style="display:none;">
+          <div style="margin-bottom:8px; font-size:13px; color:var(--ink-soft);">Paste a URL to a website, YouTube video, article, or any web resource.</div>
+          <input class="syl-meta-input" id="syl-link-url" type="url" placeholder="https://..." style="margin-bottom:8px; width:100%;">
+          <input class="syl-meta-input" id="syl-link-title" placeholder="Title / description (optional)" style="width:100%;">
+          <div class="syl-note-actions">
+            <button class="btn btn-primary" onclick="addLinkNote()">Add Link</button>
+            <button class="btn btn-ghost" onclick="hideAddForms()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Monthly Plan Config Form (hidden by default) -->
+        <div class="syl-note-form" id="syl-monthly-form" style="display:none;">
+          <div style="margin-bottom:10px; font-size:13px; color:var(--ink-soft);">Sage AI will build a full day-by-day plan spread across the number of months you choose.</div>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <label style="font-size:13px; font-weight:600; color:var(--ink);">How many months?</label>
+            <input type="number" id="syl-months-input" min="1" max="6" value="2"
+              style="width:72px; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line); background:var(--surface); color:var(--ink); font-size:14px; font-weight:600; text-align:center;">
+            <span style="font-size:13px; color:var(--ink-soft);">(1 – 6 months)</span>
+          </div>
+          <div class="syl-note-actions" style="margin-top:12px;">
+            <button class="btn btn-primary" onclick="generateMonthlyPlan()">Generate Monthly Plan</button>
+            <button class="btn btn-ghost" onclick="hideMonthlyForm()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Items List -->
+        <div class="syl-items-list" id="syl-items-list">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- AI Insights Panel -->
+        <div class="syl-insights-panel" id="syl-insights-panel" style="display:none;">
+          <div class="syl-insights-header">
+            <div class="ai-badge" style="margin-bottom:0;">✨ SAGE AI INSIGHTS</div>
+            <button class="btn btn-ghost" onclick="document.getElementById('syl-insights-panel').style.display='none';" style="padding:6px 12px; font-size:11px;">Close</button>
+          </div>
+          <div class="syl-insights-body" id="syl-insights-body">
+            <!-- AI generated content -->
+          </div>
+
+          <!-- Plan Chat Section (shown after plan is generated) -->
+          <div class="plan-chat-section" id="plan-chat-section" style="display:none;">
+            <div class="plan-chat-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Customise Your Plan
+              <span class="plan-chat-hint">Ask Sage to change anything</span>
+            </div>
+            <div class="plan-chat-messages" id="plan-chat-messages">
+              <div class="plan-chat-bubble ai">
+                <div class="pcb-avatar">✨</div>
+                <div class="pcb-text">Your plan is ready! Want to adjust anything? Try:<br>
+                  <span class="pcb-suggestion" onclick="usePlanSuggestion(this)">Make the plan more beginner-friendly</span>
+                  <span class="pcb-suggestion" onclick="usePlanSuggestion(this)">I only have 3 days, shorten the plan</span>
+                  <span class="pcb-suggestion" onclick="usePlanSuggestion(this)">Add practical exercises</span>
+                  <span class="pcb-suggestion" onclick="usePlanSuggestion(this)">Focus on the most important 20%</span>
+                </div>
+              </div>
+            </div>
+            <div class="plan-chat-input-row">
+              <input class="plan-chat-input" id="plan-chat-input" type="text"
+                placeholder="e.g. Make Day 1 cover only basics..."
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendPlanChat();}">
+              <button class="plan-chat-send" onclick="sendPlanChat()" id="plan-chat-send-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Monthly Plan Results Panel -->
+        <div class="syl-insights-panel" id="syl-monthly-panel" style="display:none;">
+          <div class="syl-insights-header">
+            <div class="ai-badge" style="margin-bottom:0;">📅 MONTHLY STUDY PLAN</div>
+            <button class="btn btn-ghost" onclick="document.getElementById('syl-monthly-panel').style.display='none';" style="padding:6px 12px; font-size:11px;">Close</button>
+          </div>
+          <div class="syl-insights-body" id="syl-monthly-body">
+            <!-- Generated monthly plan content -->
+          </div>
+
+          <!-- Monthly Plan Chat (shown after plan is generated) -->
+          <div class="plan-chat-section" id="monthly-chat-section" style="display:none;">
+            <div class="plan-chat-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Customise Monthly Plan
+              <span class="plan-chat-hint">Ask Sage to adjust any month or week</span>
+            </div>
+            <div class="plan-chat-messages" id="monthly-chat-messages">
+              <div class="plan-chat-bubble ai">
+                <div class="pcb-avatar">📅</div>
+                <div class="pcb-text">Your monthly plan is ready! Want to adjust anything? Try:<br>
+                  <span class="pcb-suggestion" onclick="useMonthlyPlanSuggestion(this)">Make Month 1 more beginner-friendly</span>
+                  <span class="pcb-suggestion" onclick="useMonthlyPlanSuggestion(this)">Add more practice days in Week 2</span>
+                  <span class="pcb-suggestion" onclick="useMonthlyPlanSuggestion(this)">I have exams, condense Month 2</span>
+                  <span class="pcb-suggestion" onclick="useMonthlyPlanSuggestion(this)">Add revision every Sunday</span>
+                </div>
+              </div>
+            </div>
+            <div class="plan-chat-input-row">
+              <input class="plan-chat-input" id="monthly-chat-input" type="text"
+                placeholder="e.g. Swap Week 3 topics with Week 4..."
+                onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMonthlyChat();}">
+              <button class="plan-chat-send" onclick="sendMonthlyChat()" id="monthly-chat-send-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /syl-notes-panel -->
+
+        <!-- ── STUDY TRACKER PANEL ────────────────────────────────────── -->
+        <div id="syl-tracker-panel" style="display:none;">
+
+          <!-- Setup state (no plan yet) -->
+          <div id="syt-setup">
+            <div class="syt-setup-hero">
+              <div class="syt-setup-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              </div>
+              <div>
+                <h3 class="syt-setup-title">Generate Your Study Tracker</h3>
+                <p class="syt-setup-sub">Sage AI builds a week-by-week task plan you can check off as you go.</p>
+              </div>
+            </div>
+            <div class="syt-form-grid">
+              <div class="syt-form-col">
+                <label class="splan-label">Goal / Target</label>
+                <input id="syt-goal" class="splan-input" type="text" placeholder="e.g. Ace my exam, build a project, get certified…" />
+              </div>
+              <div class="syt-form-col syt-form-col-sm">
+                <label class="splan-label">Duration</label>
+                <select id="syt-weeks" class="splan-input">
+                  <option value="2">2 weeks</option>
+                  <option value="4" selected>4 weeks</option>
+                  <option value="6">6 weeks</option>
+                  <option value="8">8 weeks</option>
+                  <option value="12">12 weeks</option>
+                </select>
+              </div>
+              <div class="syt-form-col syt-form-col-sm">
+                <label class="splan-label">Hours / day</label>
+                <select id="syt-hours" class="splan-input">
+                  <option value="1">1 hr</option>
+                  <option value="1.5">1.5 hrs</option>
+                  <option value="2" selected>2 hrs</option>
+                  <option value="3">3 hrs</option>
+                  <option value="4">4 hrs</option>
+                  <option value="5">5+ hrs</option>
+                </select>
+              </div>
+            </div>
+            <button id="syt-gen-btn" class="splan-gen-btn" onclick="sytGenerate()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Generate Study Tracker
+            </button>
+          </div>
+
+          <!-- Plan view (plan exists) -->
+          <div id="syt-view" style="display:none;">
+
+            <!-- Progress + meta row -->
+            <div class="syt-overview">
+              <div class="splan-ring-wrap">
+                <svg class="splan-ring-svg" viewBox="0 0 36 36">
+                  <path class="splan-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="splan-ring-fg" id="syt-ring-fg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style="stroke-dasharray:0,100;"/>
+                </svg>
+                <span class="splan-ring-pct" id="syt-ring-pct">0%</span>
+              </div>
+              <div class="syt-overview-stats">
+                <div class="splan-bar-bg"><div class="splan-bar-fill" id="syt-bar-fill" style="width:0%"></div></div>
+                <div class="syt-stat-row">
+                  <span id="syt-done-count">0</span> of <span id="syt-total-count">0</span> tasks &nbsp;·&nbsp;
+                  <span id="syt-weeks-label" style="color:var(--ink-soft);">—</span> &nbsp;·&nbsp;
+                  <span id="syt-hours-label" style="color:var(--ink-soft);">—</span>/day
+                </div>
+              </div>
+              <button class="splan-new-btn" onclick="sytReset()" title="Start a new tracker">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                New
+              </button>
+            </div>
+
+            <!-- AI suggestion strip -->
+            <div class="syt-suggestion-strip" id="syt-suggestion-strip">
+              <div class="splan-luma-dot">S</div>
+              <p id="syt-suggestion-text" style="margin:0;flex:1;font-size:13px;line-height:1.6;color:var(--ink-soft);">Loading suggestion…</p>
+              <button class="icon-btn" style="flex-shrink:0;" onclick="sytRefreshSuggestion()" title="Refresh">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+            </div>
+
+            <!-- Calendar activation banner -->
+            <div class="syt-cal-banner" id="syt-cal-banner">
+              <div class="syt-cal-banner-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div class="syt-cal-banner-info">
+                <div class="syt-cal-banner-title">Calendar Schedule</div>
+                <div class="syt-cal-banner-sub" id="syt-cal-status">Pick a start date to activate this plan</div>
+              </div>
+              <div class="syt-cal-banner-actions">
+                <input type="date" id="syt-cal-date" class="splan-input syt-cal-date-input" />
+                <button class="splan-gen-btn syt-cal-activate-btn" onclick="sytActivateCalendar()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Activate
+                </button>
+                <button class="splan-new-btn" onclick="switchView('calendar')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  View Calendar
+                </button>
+              </div>
+            </div>
+
+            <!-- Weekly task accordion -->
+            <div id="syt-weeks-container"></div>
+
+          </div>
+        </div><!-- /syl-tracker-panel -->
+
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ CALENDAR ============ -->
+<section class="view" id="view-calendar">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="greeting">Calendar · Activity & Reminders</div>
+      <h1>Your <span class="highlight-sunset"><i>progress</i></span>, day by day.</h1>
+    </div>
+  </div>
+
+  <div class="cal-layout">
+
+    <!-- ── LEFT: Calendar grid ── -->
+    <div class="cal-left">
+
+      <!-- streak + month nav -->
+      <div class="cal-top-bar">
+        <div class="cal-streak" id="cal-streak-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span id="cal-streak-count">0</span> day streak
+        </div>
+        <div class="cal-month-nav">
+          <button class="icon-btn" onclick="calPrevMonth()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cal-month-label" id="cal-month-label">May 2026</span>
+          <button class="icon-btn" onclick="calNextMonth()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- day-of-week headers -->
+      <div class="cal-dow-row">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+
+      <!-- grid (JS fills this) -->
+      <div class="cal-grid" id="cal-grid"></div>
+
+      <!-- legend -->
+      <div class="cal-legend">
+        <span class="cal-legend-item"><span class="cal-dot" style="background:var(--primary);opacity:.3;"></span> Low activity</span>
+        <span class="cal-legend-item"><span class="cal-dot" style="background:var(--primary);opacity:.7;"></span> Moderate</span>
+        <span class="cal-legend-item"><span class="cal-dot" style="background:var(--primary);"></span> High activity</span>
+        <span class="cal-legend-item"><span class="cal-dot" style="background:#f59e0b;"></span> Reminder</span>
+        <span class="cal-legend-item"><span class="cal-dot" style="background:#34d399;"></span> Task done</span>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Day detail + reminders ── -->
+    <div class="cal-right">
+
+      <!-- Day detail card -->
+      <div class="card cal-day-card" id="cal-day-card">
+        <div class="cal-day-header" id="cal-day-header">
+          <span class="cal-day-date" id="cal-day-date">Select a day</span>
+          <button class="cal-add-reminder-btn" id="cal-add-btn" onclick="calShowReminderForm()" style="display:none;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Reminder
+          </button>
+        </div>
+
+        <!-- Activity breakdown -->
+        <div id="cal-day-activity" style="display:none;">
+          <div class="cal-activity-grid">
+            <div class="cal-act-item" id="cal-act-chat">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span id="cal-act-chat-n">0</span>
+              <span class="cal-act-label">Chats</span>
+            </div>
+            <div class="cal-act-item" id="cal-act-fc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span id="cal-act-fc-n">0</span>
+              <span class="cal-act-label">Cards</span>
+            </div>
+            <div class="cal-act-item" id="cal-act-quiz">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              <span id="cal-act-quiz-n">0</span>
+              <span class="cal-act-label">Quizzes</span>
+            </div>
+            <div class="cal-act-item" id="cal-act-tasks">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              <span id="cal-act-tasks-n">0</span>
+              <span class="cal-act-label">Tasks done</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scheduled plan tasks for selected day -->
+        <div id="cal-day-plan-tasks" style="margin-top:16px;"></div>
+
+        <!-- No activity placeholder -->
+        <div id="cal-day-empty" style="padding:20px 0;text-align:center;color:var(--ink-soft);font-size:13px;">
+          Click a day to see your activity
+        </div>
+
+        <!-- Add reminder form (hidden) -->
+        <div id="cal-reminder-form" style="display:none;margin-top:16px;">
+          <div class="cal-form-row">
+            <input id="cal-rem-title" class="splan-input" type="text" placeholder="Reminder title…" style="flex:1;" />
+          </div>
+          <div class="cal-form-row" style="margin-top:10px;">
+            <input id="cal-rem-time" class="splan-input" type="time" style="width:130px;" />
+            <span style="font-size:12px;color:var(--ink-soft);">Time (optional)</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button class="btn btn-primary" style="flex:1;font-size:13px;" onclick="calAddReminder()">Save Reminder</button>
+            <button class="btn btn-ghost" style="font-size:13px;" onclick="calHideReminderForm()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Reminders for selected day -->
+        <div id="cal-day-reminders" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- Upcoming reminders -->
+      <div class="card" style="margin-top:20px;">
+        <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          Upcoming Reminders
+        </div>
+        <div id="cal-upcoming-list">
+          <div style="font-size:13px;color:var(--ink-soft);">No upcoming reminders</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

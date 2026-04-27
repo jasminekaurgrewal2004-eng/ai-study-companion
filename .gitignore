@@ -1,0 +1,44 @@
+# Environment & secrets
+.env
+*.env
+api key.txt
+api_key.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+*.log
+server_log.txt
+media/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scratch / temp
+scratch/
+*.tmp
+

@@ -1,0 +1,519 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Companion — Sign In</title>
+  <meta name="description" content="AI Study Companion — your intelligent learning partner. Create an account or sign in to access AI-powered study tools, flashcards, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      font-family: 'DM Sans', sans-serif;
+      background: #0a0a12;
+      color: #e2e2f0;
+      overflow: hidden;
+    }
+
+    /* ─── Left hero panel ─── */
+    .auth-hero {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 56px;
+      overflow: hidden;
+    }
+    .auth-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(99,102,241,.25) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 70% 20%, rgba(168,85,247,.2) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(52,211,153,.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .auth-hero > * { position: relative; z-index: 1; }
+
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+    .hero-logo-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 24px rgba(99,102,241,.35);
+    }
+    .hero-logo-mark svg { width: 26px; height: 26px; color: #fff; }
+    .hero-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: #fff;
+    }
+    .hero-logo-text i { color: #a78bfa; }
+
+    .hero-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 800;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 20px;
+      max-width: 540px;
+    }
+    .hero-headline .grad {
+      background: linear-gradient(135deg, #818cf8, #c084fc, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,.55);
+      line-height: 1.7;
+      max-width: 440px;
+      margin-bottom: 48px;
+    }
+
+    /* Feature pills */
+    .hero-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .hero-feat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 100px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,.7);
+      transition: all .25s;
+    }
+    .hero-feat:hover {
+      border-color: rgba(99,102,241,.4);
+      background: rgba(99,102,241,.08);
+      color: #c4b5fd;
+    }
+    .hero-feat svg { width: 16px; height: 16px; stroke: #818cf8; flex-shrink: 0; }
+
+    /* Floating orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width:340px; height:340px; left:-80px; top:10%; background:rgba(99,102,241,.18); animation-delay:0s; }
+    .orb-2 { width:260px; height:260px; right:10%; bottom:10%; background:rgba(168,85,247,.14); animation-delay:-4s; }
+    .orb-3 { width:200px; height:200px; left:40%; top:60%; background:rgba(52,211,153,.1); animation-delay:-8s; }
+    @keyframes drift {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, -20px) scale(1.08); }
+    }
+
+    /* ─── Right form panel ─── */
+    .auth-panel {
+      width: 480px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 48px;
+      background: #111120;
+      border-left: 1px solid rgba(255,255,255,.06);
+      position: relative;
+    }
+    .auth-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(99,102,241,.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .auth-panel > * { position: relative; z-index: 1; }
+
+    .auth-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .auth-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,.45);
+      margin-bottom: 36px;
+    }
+
+    /* Form fields */
+    .field-group { margin-bottom: 20px; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: .08em;
+      color: rgba(255,255,255,.4);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .field-input {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      color: #fff;
+      font-size: 15px;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .field-input::placeholder { color: rgba(255,255,255,.25); }
+    .field-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+    }
+
+    /* Primary CTA */
+    .auth-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all .25s;
+      letter-spacing: .02em;
+      box-shadow: 0 6px 20px rgba(99,102,241,.3);
+      margin-top: 8px;
+    }
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(99,102,241,.4);
+    }
+    .auth-btn:active { transform: translateY(0); }
+    .auth-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Footer link */
+    .auth-toggle {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 13px;
+      color: rgba(255,255,255,.4);
+    }
+    .auth-toggle a {
+      color: #818cf8;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .auth-toggle a:hover { color: #a78bfa; }
+
+    /* Error */
+    .error-msg {
+      color: #fb7185;
+      font-size: 13px;
+      margin-bottom: 8px;
+      display: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(251,113,133,.08);
+      border: 1px solid rgba(251,113,133,.2);
+    }
+
+    /* Divider */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+      color: rgba(255,255,255,.2);
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: .06em;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,.08);
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      body { flex-direction: column; overflow: auto; }
+      .auth-hero { min-height: 40vh; padding: 40px 28px; }
+      .auth-panel { width: 100%; min-height: auto; padding: 36px 28px; border-left: none; border-top: 1px solid rgba(255,255,255,.06); }
+    }
+    @media (max-width: 600px) {
+      .hero-headline { font-size: 28px; }
+      .auth-panel { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Left Hero ─── -->
+  <div class="auth-hero">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="hero-logo">
+      <div class="hero-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </div>
+      <div class="hero-logo-text">AI Study <i>Companion</i></div>
+    </div>
+
+    <h1 class="hero-headline">
+      Study smarter with<br><span class="grad">AI-powered</span> learning
+    </h1>
+    <p class="hero-sub">
+      Your intelligent study partner — flashcards, AI tutoring, study plans, mock tests, and performance analytics all in one place.
+    </p>
+
+    <div class="hero-features">
+      <div class="hero-feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        AI Tutor
+      </div>
+      <div class="hero-feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Smart Flashcards
+      </div>
+      <div class="hero-feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+        Mock Tests
+      </div>
+      <div class="hero-feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Study Plans
+      </div>
+      <div class="hero-feat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Learning Journal
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Right Form Panel ─── -->
+  <div class="auth-panel">
+
+    <!-- Login Form -->
+    <div id="login-form-box">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-subtitle">Sign in to continue your learning journey</div>
+
+      <div class="field-group">
+        <label class="field-label" for="auth-identifier">Username or Email</label>
+        <input class="field-input" type="text" id="auth-identifier" placeholder="you@example.com" autocomplete="username">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="auth-password">Password</label>
+        <input class="field-input" type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <p id="login-error" class="error-msg"></p>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+
+      <div class="auth-toggle">
+        Don't have an account? <a onclick="toggleForm()">Create one free</a>
+      </div>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signup-form-box" style="display: none;">
+      <div class="auth-title">Create account</div>
+      <div class="auth-subtitle">Join thousands of learners using AI to study smarter</div>
+
+      <div class="field-group">
+        <label class="field-label" for="reg-username">Username</label>
+        <input class="field-input" type="text" id="reg-username" placeholder="Pick a username" autocomplete="username">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="reg-email">Email</label>
+        <input class="field-input" type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="reg-password">Password</label>
+        <input class="field-input" type="password" id="reg-password" placeholder="Min 8 characters" autocomplete="new-password">
+      </div>
+
+      <p id="signup-error" class="error-msg"></p>
+      <button class="auth-btn" id="signup-btn" onclick="doSignup()">Create Account</button>
+
+      <div class="auth-toggle">
+        Already have an account? <a onclick="toggleForm()">Sign in</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function toggleForm() {
+      const login = document.getElementById('login-form-box');
+      const signup = document.getElementById('signup-form-box');
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('signup-error').style.display = 'none';
+      if (login.style.display === 'none') {
+        login.style.display = 'block';
+        signup.style.display = 'none';
+      } else {
+        login.style.display = 'none';
+        signup.style.display = 'block';
+      }
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function doLogin() {
+      const identifier = document.getElementById('auth-identifier').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      if (!identifier || !password) {
+        showError('login-error', 'Please enter both username/email and password.');
+        return;
+      }
+
+      const btn = document.getElementById('login-btn');
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
+      document.getElementById('login-error').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: identifier, password: password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('asc-token', data.token || '');
+          localStorage.setItem('asc-user', JSON.stringify(data.user || {}));
+          window.location.href = '/';
+          return;
+        } else {
+          showError('login-error', data.msg || 'Login failed. Please check your credentials.');
+        }
+      } catch (err) {
+        console.error('Login fetch error:', err);
+        showError('login-error', 'Could not connect to the server. Is it running?');
+      }
+
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+
+    async function doSignup() {
+      const username = document.getElementById('reg-username').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      if (!username || !email || !password) {
+        showError('signup-error', 'Please fill in all fields.');
+        return;
+      }
+
+      const btn = document.getElementById('signup-btn');
+      btn.textContent = 'Creating account…';
+      btn.disabled = true;
+      document.getElementById('signup-error').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/signup/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // Auto-login after signup
+          const loginRes = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email: username, password: password })
+          });
+          const loginData = await loginRes.json();
+
+          if (loginRes.ok) {
+            localStorage.setItem('asc-token', loginData.token || '');
+            localStorage.setItem('asc-user', JSON.stringify(loginData.user || {}));
+            window.location.href = '/';
+            return;
+          } else {
+            toggleForm();
+            showError('login-error', 'Account created! Please log in.');
+          }
+        } else {
+          showError('signup-error', data.msg || 'Registration failed.');
+        }
+      } catch (err) {
+        console.error('Signup fetch error:', err);
+        showError('signup-error', 'Could not connect to the server. Is it running?');
+      }
+
+      btn.textContent = 'Create Account';
+      btn.disabled = false;
+    }
+
+    // Allow pressing Enter to submit
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        if (document.getElementById('login-form-box').style.display !== 'none') {
+          doLogin();
+        } else {
+          doSignup();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
