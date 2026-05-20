@@ -215,3 +215,21 @@ class Reminder(models.Model):
     def __str__(self):
         return f"{self.user.username} — {self.title} on {self.date}"
 
+
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    full_name = models.CharField(max_length=120, blank=True, default='')
+    phone = models.CharField(max_length=20, blank=True, default='')
+    institute = models.CharField(max_length=160, blank=True, default='')
+    grade_level = models.CharField(max_length=80, blank=True, default='')
+    target_exam = models.CharField(max_length=120, blank=True, default='')
+    bio = models.TextField(blank=True, default='')
+    daily_goal_hours = models.FloatField(default=2.0)
+    timezone = models.CharField(max_length=80, blank=True, default='')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} profile"

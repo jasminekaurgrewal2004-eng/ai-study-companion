@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
   <!-- CSS -->
-  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}?v={% now 'U' %}">
   
   <!-- Three.js (Optional, but included in original) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -66,6 +66,10 @@
 
       <nav class="nav-section">
         <div class="nav-section-title">Personal</div>
+        <button class="nav-item" data-view="profile">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21a8 8 0 10-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          My Profile
+        </button>
         <button class="nav-item" data-view="journal">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           My Journal

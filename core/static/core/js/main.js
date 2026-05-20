@@ -11,7 +11,7 @@ let syllabi = [];
 let currentSyllabusId = null;
 
 // =================== ROUTING ===================
-const labels = {dashboard:'Dashboard',syllabus:'My Plan',calendar:'Calendar',tests:'Test Arena',flashcards:'Flashcards',tutor:'AI Tutor',billing:'Billing & Plan',groups:'Study Groups',journal:'My Journal',videos:'Video Library'};
+const labels = {dashboard:'Dashboard',syllabus:'My Plan',calendar:'Calendar',tests:'Test Arena',flashcards:'Flashcards',tutor:'AI Tutor',billing:'Billing & Plan',groups:'Study Groups',journal:'My Journal',videos:'Video Library',profile:'My Profile'};
 function switchView(view){
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   const navBtn = document.querySelector(`.nav-item[data-view="${view}"]`);
@@ -31,43 +31,61 @@ function switchView(view){
   if(view === 'tests') showArenaLanding();
   // Load calendar
   if(view === 'calendar') calLoad();
+  if(view === 'profile') loadMyProfile();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.nav-item[data-view]').forEach(item=>{
   item.addEventListener('click',()=>switchView(item.dataset.view));
 });
 
-// =================== THEME TOGGLE (LIGHT/DARK) ===================
+// =================== THEME TOGGLE (MULTIPLE THEMES) ===================
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const themeText = document.getElementById('theme-text');
 
-function updateThemeUI(isLight) {
-  if (isLight) {
-    document.body.classList.add('light');
-    themeIcon.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"/>';
-    themeText.textContent = 'Dark Theme';
-  } else {
-    document.body.classList.remove('light');
-    themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    themeText.textContent = 'Light Theme';
-  }
+const THEMES = [
+  { id: 'dark', class: '', name: 'Default Dark', icon: '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>' },
+  { id: 'light', class: 'light', name: 'Light Mode', icon: '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"/>' },
+  { id: 'nord', class: 'nord', name: 'Nord Arctic', icon: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>' },
+  { id: 'midnight', class: 'midnight', name: 'Midnight', icon: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>' },
+  { id: 'monochrome', class: 'monochrome', name: 'Monochrome', icon: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>' }
+];
+
+let currentThemeIndex = 0;
+
+function applyTheme(index) {
+    // Remove all theme classes
+    THEMES.forEach(t => { if(t.class) document.body.classList.remove(t.class); });
+    
+    // Apply new theme class
+    const t = THEMES[index];
+    if(t.class) document.body.classList.add(t.class);
+    
+    // Update button UI
+    if(themeIcon) themeIcon.innerHTML = t.icon;
+    
+    // Set text to the NEXT theme's name so user knows what they are clicking
+    const nextIndex = (index + 1) % THEMES.length;
+    if(themeText) themeText.textContent = THEMES[nextIndex].name;
+    
+    localStorage.setItem('asc-theme', t.id);
 }
 
 if(themeToggle){
   themeToggle.addEventListener('click', ()=>{
-    const isLightNow = document.body.classList.contains('light');
-    updateThemeUI(!isLightNow);
-    localStorage.setItem('ai-study-companion-theme', !isLightNow ? 'light' : 'dark');
+    currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+    applyTheme(currentThemeIndex);
   });
 }
-// Restore preference
-const savedTheme = localStorage.getItem('ai-study-companion-theme');
-if(savedTheme === 'light'){
-  updateThemeUI(true);
-} else {
-  updateThemeUI(false);
+
+const savedThemeId = localStorage.getItem('asc-theme');
+if(savedThemeId) {
+    const idx = THEMES.findIndex(t => t.id === savedThemeId);
+    if(idx !== -1) {
+        currentThemeIndex = idx;
+    }
 }
+applyTheme(currentThemeIndex);
 
 // =================== MODAL LOGIC ===================
 function closeModal(){
@@ -379,6 +397,20 @@ function submitTest(){
   document.getElementById('result-screen').style.display='block';
   window.scrollTo({top:0,behavior:'smooth'});
 
+  // Save attempt to backend
+  fetch(`${API_URL}quiz-attempt/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({
+      subject: _selectedTopic || _mockTopic || 'General',
+      score: accuracy,
+      total_questions: questions.length,
+      correct_answers: correct,
+      time_taken_seconds: elapsed
+    })
+  }).then(() => loadDashboardStats()).catch(e => console.error('Failed to log test:', e));
+
   // AI Insights panel — only for ML-powered smart quizzes
   const _aiPanel = document.getElementById('ai-insights-panel');
   if (_aiPanel) {
@@ -402,6 +434,90 @@ function submitTest(){
       _aiPanel.style.display = 'none';
     }
   }
+
+  // Generate actionable AI Insights and Study Plan
+  const wrongQs = [];
+  answers.forEach((a, i) => {
+    if (a !== null && a !== questions[i].correct) {
+      wrongQs.push({
+        q: questions[i].q,
+        correct_answer: questions[i].opts[questions[i].correct],
+        your_answer: questions[i].opts[a]
+      });
+    }
+  });
+
+  generateTestInsights({
+    topic: _selectedTopic || _mockTopic || 'General',
+    accuracy: accuracy,
+    correct: correct,
+    wrong: wrong,
+    skipped: skipped,
+    total: questions.length,
+    score: score,
+    time_taken: `${mins}:${String(secs).padStart(2,'0')}`,
+    wrong_questions: wrongQs,
+    predicted_score: _smartQuizMeta && _smartQuizMeta.prediction ? _smartQuizMeta.prediction.predicted_score : null,
+    predicted_accuracy: _smartQuizMeta && _smartQuizMeta.prediction ? _smartQuizMeta.prediction.predicted_accuracy : null
+  });
+}
+
+function generateTestInsights(payload) {
+  const panel = document.getElementById('ai-suggestions-panel');
+  const skeleton = document.getElementById('ai-suggestions-skeleton');
+  const content = document.getElementById('ai-suggestions-content');
+  if (!panel || !skeleton || !content) return;
+
+  panel.style.display = 'block';
+  skeleton.style.display = 'block';
+  content.style.display = 'none';
+
+  fetch('/api/analytics/test-insights/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(data.error) throw new Error(data.error);
+    skeleton.style.display = 'none';
+    content.style.display = 'block';
+
+    const lvlBadge = document.getElementById('ai-level-badge');
+    if (lvlBadge) {
+      let bg = 'rgba(99,102,241,0.1)', color = '#6366f1', icon = '🌱';
+      const lvl = data.level || 'Beginner';
+      if(lvl === 'Expert'){ bg = 'rgba(251,191,36,0.15)'; color = 'var(--gold)'; icon = '🏆'; }
+      else if(lvl === 'Advanced'){ bg = 'rgba(52,211,153,0.15)'; color = 'var(--mint)'; icon = '🚀'; }
+      else if(lvl === 'Intermediate'){ bg = 'rgba(99,102,241,0.15)'; color = '#6366f1'; icon = '💪'; }
+      else if(lvl === 'Developing'){ bg = 'rgba(251,113,133,0.15)'; color = 'var(--coral)'; icon = '📈'; }
+      
+      lvlBadge.style.background = bg;
+      lvlBadge.style.color = color;
+      lvlBadge.innerHTML = `<span>${icon}</span> Current Level: ${lvl}`;
+    }
+
+    const renderMd = (md) => typeof mdToHtml === 'function' ? mdToHtml(md) : md.replace(/\n/g, '<br>');
+    
+    document.getElementById('ai-suggestions-body').innerHTML = renderMd(data.suggestions || 'No suggestions available.');
+    document.getElementById('ai-study-plan-body').innerHTML = renderMd(data.study_plan || 'No plan available.');
+  })
+  .catch(err => {
+    console.error('Test insights failed:', err);
+    skeleton.style.display = 'none';
+    content.style.display = 'block';
+    document.getElementById('ai-suggestions-body').innerHTML = '<div style="color:var(--coral);">Could not load suggestions.</div>';
+    document.getElementById('ai-study-plan-body').innerHTML = '<div style="color:var(--coral);">Could not load study plan.</div>';
+  });
+}
+
+function copyStudyPlan() {
+  const planEl = document.getElementById('ai-study-plan-body');
+  if (!planEl) return;
+  navigator.clipboard.writeText(planEl.innerText).then(() => {
+    alert('Study plan copied to clipboard!');
+  });
 }
 
 function exitTest(){
@@ -647,6 +763,125 @@ function updateUIForUser() {
         document.querySelector('.profile-name').textContent = currentUser.username;
         document.querySelector('.profile-plan').textContent = currentUser.plan + ' Plan';
         document.querySelector('.avatar').textContent = currentUser.username[0].toUpperCase();
+    }
+}
+
+async function loadMyProfile() {
+    const form = document.getElementById('view-profile');
+    if (!form) return;
+    const statusEl = document.getElementById('pf-status');
+    if (statusEl) statusEl.textContent = 'Loading...';
+    try {
+        const res = await fetch('/api/profile/', { credentials: 'include' });
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (!ct.includes('application/json')) {
+            if (statusEl) statusEl.textContent = 'Session issue. Please login again.';
+            return;
+        }
+        if (!res.ok) {
+            if (statusEl) statusEl.textContent = `Failed to load profile (${res.status})`;
+            return;
+        }
+        const data = await res.json();
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+        const planText = (currentUser && currentUser.plan ? `${currentUser.plan} Plan` : (document.querySelector('.profile-plan')?.textContent || 'Free Plan'));
+        set('pf-username', data.username);
+        set('pf-email', data.email);
+        set('pf-current-plan', planText);
+        set('pf-full-name', data.full_name);
+        set('pf-phone', data.phone);
+        set('pf-institute', data.institute);
+        set('pf-grade-level', data.grade_level);
+        set('pf-target-exam', data.target_exam);
+        set('pf-bio', data.bio);
+        set('pf-daily-goal-hours', data.daily_goal_hours);
+        set('pf-timezone', data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+        if (statusEl) statusEl.textContent = '';
+    } catch (_) {
+        if (statusEl) statusEl.textContent = 'Failed to load profile';
+    }
+}
+
+async function deleteMyProfile() {
+    const statusEl = document.getElementById('pf-status');
+    const btn = document.getElementById('pf-delete-btn');
+    if (!confirm('Delete your student profile details?')) return;
+    try {
+        if (btn) btn.disabled = true;
+        if (statusEl) statusEl.textContent = 'Deleting...';
+        const res = await fetch('/api/profile/', {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            credentials: 'include'
+        });
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (!ct.includes('application/json')) {
+            if (statusEl) statusEl.textContent = 'Session issue. Please login again.';
+            return;
+        }
+        const data = await res.json();
+        if (!res.ok) {
+            if (statusEl) statusEl.textContent = data.msg || `Delete failed (${res.status})`;
+            return;
+        }
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+        set('pf-full-name', '');
+        set('pf-phone', '');
+        set('pf-institute', '');
+        set('pf-grade-level', '');
+        set('pf-target-exam', '');
+        set('pf-bio', '');
+        set('pf-daily-goal-hours', 2);
+        set('pf-timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+        if (statusEl) statusEl.textContent = 'Profile deleted';
+    } catch (err) {
+        if (statusEl) statusEl.textContent = `Delete failed (${err?.message || 'unknown'})`;
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function saveMyProfile() {
+    const btn = document.getElementById('pf-save-btn');
+    const statusEl = document.getElementById('pf-status');
+    const payload = {
+        email: document.getElementById('pf-email')?.value || '',
+        full_name: document.getElementById('pf-full-name')?.value || '',
+        phone: document.getElementById('pf-phone')?.value || '',
+        institute: document.getElementById('pf-institute')?.value || '',
+        grade_level: document.getElementById('pf-grade-level')?.value || '',
+        target_exam: document.getElementById('pf-target-exam')?.value || '',
+        bio: document.getElementById('pf-bio')?.value || '',
+        daily_goal_hours: document.getElementById('pf-daily-goal-hours')?.value || 0,
+        timezone: document.getElementById('pf-timezone')?.value || '',
+    };
+    try {
+        if (btn) btn.disabled = true;
+        if (statusEl) statusEl.textContent = 'Saving...';
+        const res = await fetch('/api/profile/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (!ct.includes('application/json')) {
+            if (statusEl) statusEl.textContent = 'Session issue. Please login again.';
+            return;
+        }
+        const data = await res.json();
+        if (!res.ok) {
+            if (statusEl) statusEl.textContent = data.msg || `Save failed (${res.status})`;
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Profile saved';
+    } catch (err) {
+        if (statusEl) statusEl.textContent = `Save failed (${err?.message || 'unknown'})`;
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
 
@@ -1194,7 +1429,7 @@ async function fcLoadCards() {
     fcAllCards = data;
 
     if (data.length === 0) {
-      listEl.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:16px;">No flashcards yet. Create one above!</div>';
+      listEl.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;text-align:center;padding:16px;">No flashcards yet. Generate some with AI above.</div>';
       return;
     }
 
@@ -3012,6 +3247,7 @@ async function calTogglePlanTask(taskId, checkEl) {
         }
       });
     }
+    loadDailyMission();
   } catch (_) {}
 }
 
@@ -3317,6 +3553,7 @@ async function sytToggleTask(taskId, checkEl) {
       });
     }
     if (data.progress_pct === 100 || data.completed_tasks % 5 === 0) sytRefreshSuggestion();
+    loadDailyMission();
   } catch (_) {}
 }
 
@@ -3514,6 +3751,7 @@ async function togglePlanTask(taskId, checkEl) {
         }
       });
     }
+    loadDailyMission();
   } catch (_) {}
 }
 
@@ -3620,8 +3858,11 @@ window.calAddReminder = calAddReminder;
 window.calToggleReminder = calToggleReminder;
 window.calDeleteReminder = calDeleteReminder;
 window.calTogglePlanTask = calTogglePlanTask;
+window.dailyMissionToggleTask = dailyMissionToggleTask;
 // Syllabus tab + Study Tracker exports
 window.sylSwitchTab = sylSwitchTab;
+window.saveMyProfile = saveMyProfile;
+window.deleteMyProfile = deleteMyProfile;
 window.sytGenerate = sytGenerate;
 window.sytActivateCalendar = sytActivateCalendar;
 window.sytToggleTask = sytToggleTask;
@@ -3859,3 +4100,142 @@ function loadStudyTime() {
 // Load on page ready
 document.addEventListener('DOMContentLoaded', loadStudyTime);
 
+let _dailyMissionTasks = [];
+
+function _dailyMissionDateLabel(date) {
+  const d = String(date.getDate()).padStart(2, '0');
+  const m = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+  return `${d} ${m}`;
+}
+
+function _renderDailyMission(tasks) {
+  const listEl = document.getElementById('daily-mission-list');
+  const subEl = document.getElementById('daily-mission-sub');
+  const dateEl = document.getElementById('daily-mission-date');
+  if (!listEl || !subEl || !dateEl) return;
+
+  const done = tasks.filter(t => t.is_completed).length;
+  subEl.textContent = `${done}/${tasks.length} Tasks completed`;
+  dateEl.textContent = _dailyMissionDateLabel(new Date());
+
+  if (!tasks.length) {
+    listEl.innerHTML = `<div class="plan-item">
+      <div class="p-body">
+        <div class="p-title">No study tasks scheduled for today</div>
+        <div class="p-meta"><span>Add tasks in your Study Plan calendar</span></div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML = tasks.map(t => `
+    <div class="plan-item${t.is_completed ? ' done' : ''}" id="daily-mission-task-${t.id}" onclick="dailyMissionToggleTask(${t.id}, this)">
+      <div class="p-check${t.is_completed ? ' on' : ''}">
+        ${t.is_completed ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
+      </div>
+      <div class="p-body">
+        <div class="p-title">${t.title}</div>
+        <div class="p-meta"><span>Scheduled</span><span>Week ${t.week_number || '-'}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadDailyMission() {
+  const listEl = document.getElementById('daily-mission-list');
+  if (!listEl) return;
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth() + 1;
+  const ds = _calDateStr(today);
+  try {
+    const res = await fetch(`/api/calendar/?year=${y}&month=${m}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    _dailyMissionTasks = (data.scheduled_tasks || {})[ds] || [];
+    _renderDailyMission(_dailyMissionTasks);
+  } catch (_) {}
+}
+
+async function dailyMissionToggleTask(taskId, rowEl) {
+  try {
+    const res = await fetch(`/api/study-plan/tasks/${taskId}/toggle/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+    const task = _dailyMissionTasks.find(t => t.id === taskId);
+    if (task) task.is_completed = data.is_completed;
+    _renderDailyMission(_dailyMissionTasks);
+    // Keep other task views synced.
+    if (typeof calLoad === 'function') calLoad();
+    if (_sytData) {
+      _sytData.completed_tasks = data.completed_tasks;
+      _sytData.total_tasks = data.total_tasks;
+      _sytData.progress_pct = data.progress_pct;
+      _sytData.weeks.forEach(wk => {
+        const t = wk.tasks.find(tk => tk.id === taskId);
+        if (t) t.is_completed = data.is_completed;
+      });
+      _sytUpdateProgress(_sytData);
+    }
+    if (_splanData) {
+      _splanData.completed_tasks = data.completed_tasks;
+      _splanData.total_tasks = data.total_tasks;
+      _splanData.progress_pct = data.progress_pct;
+      _splanData.weeks.forEach(wk => {
+        const t = wk.tasks.find(tk => tk.id === taskId);
+        if (t) t.is_completed = data.is_completed;
+      });
+      _splanUpdateProgress(_splanData);
+    }
+  } catch (_) {}
+}
+
+async function loadDashboardStats() {
+    try {
+        const res = await fetch(`${API_URL}quiz-attempt/`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        const xpEl = document.getElementById('dash-xp');
+        if (xpEl) xpEl.innerHTML = (data.xp || 0).toLocaleString();
+        
+        const accEl = document.getElementById('dash-accuracy');
+        if (accEl) accEl.innerHTML = (data.avg_score || 0) + '<span class="unit">%</span>';
+        
+        const subjContainer = document.querySelector('.subjects');
+        if (subjContainer && data.subject_mastery) {
+            subjContainer.innerHTML = data.subject_mastery.map(subj => `
+                <div class="subject">
+                  <div class="subj-ring">
+                    <svg viewBox="0 0 36 36"><path class="bg-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="fg-ring" style="stroke:var(--primary);stroke-dasharray:${subj.score}, 100;" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+                    <div class="subj-ring-num">${subj.score}</div>
+                  </div>
+                  <div class="subj-info"><div class="subj-name">${subj.name}</div><div class="subj-meta">Mastery</div></div>
+                </div>
+            `).join('');
+        }
+        
+        const chartPath = document.querySelector('.chart path:first-child');
+        if (chartPath && data.velocity && data.velocity.length > 0) {
+            const maxPts = 8;
+            const pts = data.velocity.slice(-maxPts);
+            if(pts.length === 1) pts.unshift(0); // Make it a line
+            const width = 800;
+            const height = 260;
+            const step = width / (pts.length - 1);
+            let pathD = pts.map((p, i) => {
+                const x = i * step;
+                const y = height - (p / 100) * height * 0.8 - 20;
+                return (i === 0 ? 'M' : 'L') + x + ',' + y;
+            }).join(' ');
+            chartPath.setAttribute('d', pathD);
+        }
+    } catch (err) {
+        console.error('Failed to load dashboard stats', err);
+    }
+}
+document.addEventListener('DOMContentLoaded', loadDashboardStats);
+document.addEventListener('DOMContentLoaded', loadDailyMission);

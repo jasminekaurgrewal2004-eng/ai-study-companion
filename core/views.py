@@ -6,11 +6,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
-from .models import JournalEntry, ChatHistory, ChatSession, Syllabus, SyllabusItem, Flashcard, FlashcardReview, QuizAttempt, StudyPlan, StudyPlanTask, Reminder
+from .models import JournalEntry, ChatHistory, ChatSession, Syllabus, SyllabusItem, Flashcard, FlashcardReview, QuizAttempt, StudyPlan, StudyPlanTask, Reminder, StudentProfile
 from .ml_services import ForgettingCurvePredictor, ConfusionTopicAnalyzer, PerformanceRiskScorer
-from groq import Groq
 import os
 from dotenv import load_dotenv
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
 try:
     import PyPDF2
     HAS_PYPDF2 = True
@@ -20,7 +23,7 @@ except ImportError:
 load_dotenv()
 
 # Configure Groq
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY")) if Groq else None
 
 @login_required
 def dashboard(request):
@@ -104,6 +107,59 @@ def api_login(request):
 def api_logout(request):
     auth_logout(request)
     return redirect('login')
+
+
+@login_required
+@csrf_exempt
+def api_profile(request):
+    profile = StudentProfile.objects.filter(user=request.user).first()
+
+    if request.method == 'GET':
+        return JsonResponse({
+            'username': request.user.username,
+            'email': request.user.email or '',
+            'full_name': profile.full_name if profile else '',
+            'phone': profile.phone if profile else '',
+            'institute': profile.institute if profile else '',
+            'grade_level': profile.grade_level if profile else '',
+            'target_exam': profile.target_exam if profile else '',
+            'bio': profile.bio if profile else '',
+            'daily_goal_hours': profile.daily_goal_hours if profile else 2.0,
+            'timezone': profile.timezone if profile else '',
+        })
+
+    if request.method == 'POST':
+        try:
+            if not profile:
+                profile = StudentProfile.objects.create(user=request.user)
+            data = json.loads(request.body or '{}')
+            request.user.email = (data.get('email') or '').strip()
+            request.user.save(update_fields=['email'])
+
+            profile.full_name = (data.get('full_name') or '').strip()
+            profile.phone = (data.get('phone') or '').strip()
+            profile.institute = (data.get('institute') or '').strip()
+            profile.grade_level = (data.get('grade_level') or '').strip()
+            profile.target_exam = (data.get('target_exam') or '').strip()
+            profile.bio = (data.get('bio') or '').strip()
+            profile.timezone = (data.get('timezone') or '').strip()
+            try:
+                profile.daily_goal_hours = float(data.get('daily_goal_hours') or 0)
+            except (TypeError, ValueError):
+                profile.daily_goal_hours = 0
+            if profile.daily_goal_hours < 0:
+                profile.daily_goal_hours = 0
+            profile.save()
+            return JsonResponse({'msg': 'Profile updated successfully'})
+        except Exception as e:
+            return JsonResponse({'msg': str(e)}, status=400)
+
+    if request.method == 'DELETE':
+        if profile:
+            profile.delete()
+        return JsonResponse({'msg': 'Profile deleted'})
+
+    return JsonResponse({'msg': 'Method not allowed'}, status=405)
 
 @login_required
 @csrf_exempt
@@ -1116,6 +1172,48 @@ def api_quiz_attempt(request):
             return JsonResponse({'id': attempt.id, 'msg': 'Quiz attempt recorded'})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+    elif request.method == 'GET':
+        attempts = list(QuizAttempt.objects.filter(user=request.user).order_by('attempted_at'))
+        total_tests = len(attempts)
+        if total_tests > 0:
+            avg_score = sum(a.score for a in attempts) / total_tests
+        else:
+            avg_score = 0
+        xp = total_tests * 50 # 50 XP per test
+        
+        # Calculate subject mastery
+        subject_scores = {}
+        for a in attempts:
+            if a.subject not in subject_scores:
+                subject_scores[a.subject] = []
+            subject_scores[a.subject].append(a.score)
+        
+        subject_mastery = []
+        for subj, scores in subject_scores.items():
+            subject_mastery.append({
+                'name': subj,
+                'score': round(sum(scores) / len(scores))
+            })
+            
+        # If no attempts, provide default mock
+        if not subject_mastery:
+            subject_mastery = [
+                {'name': 'General', 'score': 0}
+            ]
+            
+        # Velocity (last 10 attempts)
+        recent_attempts = attempts[-10:] if attempts else []
+        velocity = [a.score for a in recent_attempts]
+        if not velocity:
+            velocity = [0, 10, 20, 30]
+
+        return JsonResponse({
+            'avg_score': round(avg_score),
+            'total_tests': total_tests,
+            'xp': xp,
+            'subject_mastery': subject_mastery,
+            'velocity': velocity
+        })
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
@@ -1177,6 +1275,8 @@ def api_study_plan_generate(request):
 
         if not subject:
             return JsonResponse({'error': 'Subject is required'}, status=400)
+        if client is None:
+            return JsonResponse({'error': 'Groq SDK is not installed on this system.'}, status=503)
 
         prompt = f"""Generate a structured {duration_weeks}-week study plan for: {subject}
 Goal: {goal or 'Master the subject thoroughly'}
@@ -1321,6 +1421,8 @@ def api_study_plan_suggestion(request):
     if request.method != 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     try:
+        if client is None:
+            return JsonResponse({'suggestion': 'AI suggestions are unavailable because Groq SDK is not installed.'})
         plan = StudyPlan.objects.filter(user=request.user, is_active=True).first()
         if not plan:
             return JsonResponse({'suggestion': 'Start by creating your personalised study plan above!'})

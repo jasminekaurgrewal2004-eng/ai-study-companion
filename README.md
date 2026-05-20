@@ -6,12 +6,19 @@ forgetting, surface confusion patterns, and flag at-risk learners.
 ## Quick Start
 
 ```bash
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python manage.py migrate
 python manage.py generate_synthetic_data   # seed 50 demo users
 python manage.py train_forgetting_curve
 python manage.py train_confusion_clusters
 python manage.py train_risk_model
+python manage.py runserver
+```
+
+`run.bat` is optional and only for Windows convenience. The canonical cross-platform start command is:
+
+```bash
 python manage.py runserver
 ```
 

@@ -416,6 +416,228 @@ Questions must be academically rigorous, syllabus-level, and unambiguous."""
 
 
 @login_required
+@csrf_exempt
+@require_http_methods(['POST'])
+def test_insights(request):
+    """
+    Generate AI-powered performance suggestions and a personalized study plan
+    after a quiz/mock test is completed.
+
+    Body (JSON):
+        topic            (str)  — subject of the test
+        accuracy         (int)  — percentage accuracy
+        correct          (int)  — number of correct answers
+        wrong            (int)  — number of wrong answers
+        skipped          (int)  — number of skipped questions
+        total            (int)  — total number of questions
+        score            (int)  — total score (marks)
+        time_taken       (str)  — total time taken e.g. "4:32"
+        wrong_questions   (list) — list of {q, correct_answer, your_answer} for wrong Qs
+        predicted_score  (int, optional) — AI predicted score
+        predicted_accuracy (float, optional) — AI predicted accuracy
+
+    Response: {suggestions: str (markdown), study_plan: str (markdown), level: str}
+    """
+    import os, json as _json
+    from groq import Groq
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    try:
+        body = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    topic = body.get('topic', 'General')
+    accuracy = body.get('accuracy', 0)
+    correct = body.get('correct', 0)
+    wrong = body.get('wrong', 0)
+    skipped = body.get('skipped', 0)
+    total = body.get('total', 0)
+    score = body.get('score', 0)
+    time_taken = body.get('time_taken', '0:00')
+    wrong_questions = body.get('wrong_questions', [])
+    predicted_score = body.get('predicted_score')
+    predicted_accuracy = body.get('predicted_accuracy')
+
+    api_key = os.getenv('GROQ_API_KEY')
+    if not api_key:
+        return JsonResponse({'error': 'Groq API key not configured'}, status=500)
+
+    # Determine performance level
+    if accuracy >= 90:
+        level = 'Expert'
+    elif accuracy >= 75:
+        level = 'Advanced'
+    elif accuracy >= 60:
+        level = 'Intermediate'
+    elif accuracy >= 40:
+        level = 'Developing'
+    else:
+        level = 'Beginner'
+
+    # Build wrong questions summary for the prompt
+    wrong_summary = ''
+    if wrong_questions:
+        wrong_lines = []
+        for i, wq in enumerate(wrong_questions[:15], 1):
+            wrong_lines.append(
+                f"{i}. Q: {wq.get('q', 'N/A')}\n"
+                f"   Correct: {wq.get('correct_answer', 'N/A')}\n"
+                f"   Student chose: {wq.get('your_answer', 'N/A')}"
+            )
+        wrong_summary = "\n".join(wrong_lines)
+
+    prediction_context = ''
+    if predicted_score is not None:
+        diff = score - predicted_score
+        prediction_context = (
+            f"\nAI Prediction: {predicted_score} marks, {predicted_accuracy}% accuracy.\n"
+            f"Actual vs Predicted difference: {'+' if diff >= 0 else ''}{diff} marks.\n"
+        )
+
+    suggestions_prompt = f"""You are Sage, an expert AI learning coach inside the AI Study Companion app.
+
+A student just completed a test on "{topic}". Analyze their performance and provide detailed, personalized feedback.
+
+TEST RESULTS:
+- Score: {score} marks out of {total * 4} max
+- Accuracy: {accuracy}%
+- Correct: {correct}/{total}
+- Wrong: {wrong}/{total}
+- Skipped: {skipped}/{total}
+- Time Taken: {time_taken}
+- Performance Level: {level}
+{prediction_context}
+
+QUESTIONS THEY GOT WRONG:
+{wrong_summary if wrong_summary else "No details available."}
+
+Generate a performance analysis in EXACTLY this format — use markdown:
+
+## 🎯 Performance Summary
+- One sentence overall assessment
+- Their level: **{level}** — what this means
+
+## 💪 Strengths
+- List 2-3 specific strengths based on what they got right
+- Be encouraging and specific
+
+## ⚠️ Areas to Improve
+- List 3-4 specific weak areas based on wrong answers
+- Reference the actual topics/concepts they got wrong
+- Be constructive, not discouraging
+
+## 📌 Key Concepts to Revisit
+- List 4-6 specific concepts/topics they should study
+- Based directly on the questions they answered incorrectly
+- Each should be a specific, actionable topic (not vague)
+
+## 💡 Study Tips
+- 3-4 targeted tips for improving in this subject
+- Specific to "{topic}" and their error patterns
+
+RULES:
+- Be encouraging but honest
+- Reference specific questions/topics they got wrong
+- Keep bullets short (max 15 words each)
+- Use **bold** for key terms
+- No paragraphs, only bullets
+- Be specific to the subject matter, not generic advice"""
+
+    study_plan_prompt = f"""You are Sage, an expert AI learning coach. Based on a student's test performance on "{topic}", create a focused 7-day study plan to help them improve.
+
+STUDENT PERFORMANCE:
+- Accuracy: {accuracy}% ({level} level)
+- Got {wrong} out of {total} questions wrong
+- Topics they struggled with:
+{wrong_summary if wrong_summary else "General review needed across all areas."}
+
+Create a detailed, actionable 7-day study plan in EXACTLY this format — use markdown:
+
+## 📅 7-Day Recovery Plan for {topic}
+
+### Day 1 — Foundation Review
+- **Morning (30 min):** [specific topic from weak areas]
+- **Evening (20 min):** [review activity]
+
+### Day 2 — Deep Dive
+- **Morning (30 min):** [specific topic]
+- **Evening (20 min):** [practice activity]
+
+### Day 3 — Practice & Apply
+- **Morning (30 min):** [specific topic]
+- **Evening (20 min):** [practice quiz or problems]
+
+### Day 4 — Weak Area Focus
+- **Morning (30 min):** [hardest topic they got wrong]
+- **Evening (20 min):** [targeted practice]
+
+### Day 5 — Connect the Dots
+- **Morning (30 min):** [connecting related concepts]
+- **Evening (20 min):** [mixed review]
+
+### Day 6 — Mock Practice
+- **Morning (40 min):** Take a practice quiz on weak areas
+- **Evening (15 min):** Review mistakes from practice
+
+### Day 7 — Review & Consolidate
+- **Morning (30 min):** Revise all weak topics from the week
+- **Evening (20 min):** Self-test with flashcards
+
+## 📚 Recommended Resources
+- 3-4 specific topics/resources to look up
+- Specific to "{topic}" and their weak areas
+
+## 🎯 Weekly Goal
+- One clear, measurable goal for the week
+
+RULES:
+- Be extremely specific — reference actual topics from wrong answers
+- Each task should be actionable in the given time
+- Focus study time on the areas they got wrong
+- Keep every bullet to one line
+- Use **bold** for key concepts
+- Adapt difficulty to their {level} level"""
+
+    try:
+        client = Groq(api_key=api_key)
+
+        # Generate suggestions
+        resp1 = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[
+                {'role': 'system', 'content': 'You are Sage, an expert AI learning coach. Respond only in structured markdown with bullet points. Never write paragraphs. Be specific, encouraging, and actionable.'},
+                {'role': 'user', 'content': suggestions_prompt},
+            ],
+            temperature=0.6,
+            max_tokens=2048,
+        )
+        suggestions = resp1.choices[0].message.content.strip()
+
+        # Generate study plan
+        resp2 = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[
+                {'role': 'system', 'content': 'You are Sage, an expert AI learning coach. Create detailed, actionable study plans. Respond only in structured markdown. Never write paragraphs. Be specific to the student\'s weak areas.'},
+                {'role': 'user', 'content': study_plan_prompt},
+            ],
+            temperature=0.6,
+            max_tokens=2048,
+        )
+        study_plan = resp2.choices[0].message.content.strip()
+
+        return JsonResponse({
+            'suggestions': suggestions,
+            'study_plan': study_plan,
+            'level': level,
+        })
+
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
+
+
+@login_required
 @require_http_methods(['GET'])
 def video_search(request):
     """

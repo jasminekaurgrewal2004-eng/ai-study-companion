@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/auth/signup/', views.api_signup, name='api_signup'),
     path('api/auth/login/', views.api_login, name='api_login'),
     path('api/auth/logout/', views.api_logout, name='logout'),
+    path('api/profile/', views.api_profile, name='api_profile'),
     path('api/journals/', views.api_journals, name='api_journals'),
     path('api/journals/<int:pk>/', views.api_journal_detail, name='api_journal_detail'),
     path('api/chat/', views.api_chat, name='api_chat'),
@@ -50,4 +51,3 @@ urlpatterns = [
     path('api/reminders/', views.api_reminders, name='api_reminders'),
     path('api/reminders/<int:pk>/', views.api_reminder_detail, name='api_reminder_detail'),
 ]
-
