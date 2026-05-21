@@ -314,14 +314,16 @@ def generate_mock(request):
 
     # Accept individual type counts (from stepper UI) or fall back to total-based split
     try:
-        mcq_n  = min(int(request.GET.get('mcq',  -1)), 30)
-        tf_n   = min(int(request.GET.get('tf',   -1)), 20)
-        fitb_n = min(int(request.GET.get('fitb', -1)), 20)
-        ar_n   = min(int(request.GET.get('ar',   -1)), 15)
+        mcq_n   = min(int(request.GET.get('mcq',   -1)), 30)
+        tf_n    = min(int(request.GET.get('tf',    -1)), 20)
+        fitb_n  = min(int(request.GET.get('fitb',  -1)), 20)
+        ar_n    = min(int(request.GET.get('ar',    -1)), 15)
+        write_n = min(int(request.GET.get('write', -1)), 15)
+        solve_n = min(int(request.GET.get('solve', -1)), 15)
     except ValueError:
-        mcq_n = tf_n = fitb_n = ar_n = -1
+        mcq_n = tf_n = fitb_n = ar_n = write_n = solve_n = -1
 
-    if mcq_n < 0 or tf_n < 0 or fitb_n < 0 or ar_n < 0:
+    if mcq_n < 0 or tf_n < 0 or fitb_n < 0 or ar_n < 0 or write_n < 0 or solve_n < 0:
         # Legacy fallback: distribute from total count
         try:
             count = min(max(int(request.GET.get('count', 30)), 10), 50)
@@ -330,9 +332,11 @@ def generate_mock(request):
         mcq_n   = math.ceil(count * 0.40)
         tf_n    = math.ceil(count * 0.25)
         fitb_n  = math.ceil(count * 0.20)
-        ar_n    = count - mcq_n - tf_n - fitb_n
+        ar_n    = math.ceil(count * 0.10)
+        write_n = math.ceil(count * 0.03)
+        solve_n = count - mcq_n - tf_n - fitb_n - ar_n - write_n
 
-    count = mcq_n + tf_n + fitb_n + ar_n
+    count = mcq_n + tf_n + fitb_n + ar_n + write_n + solve_n
     if count == 0:
         return JsonResponse({'error': 'Total question count cannot be zero.'}, status=400)
 
@@ -348,9 +352,15 @@ Generate exactly {count} questions with this distribution:
    "A is true but R is false",
    "A is false but R is true",
    "Both A and R are false"]
+- {write_n} Writing questions (qtype "SHORT_ANSWER"): no opts required; include "expected_answer" (1-2 lines) and "keywords" (array of 3-6 strings)
+- {solve_n} Solving questions (qtype "NUMERICAL"): no opts required; include "expected_answer" (numeric string like "42" or "3.14") and "tolerance" (number, e.g. 0.01)
 
 Return ONLY a valid JSON array — no markdown, no extra text.
-Each element: {{"q":"...","opts":[...],"correct":0,"diff":"EASY|MEDIUM|HARD","hint":"...","explain":"...","qtype":"..."}}
+Each element must have:
+- "q", "diff", "hint", "explain", "qtype"
+- For objective qtypes (MCQ/TRUE_FALSE/FILL_BLANK/ASSERTION): include "opts" array and "correct" index
+- For SHORT_ANSWER: include "expected_answer" and "keywords"
+- For NUMERICAL: include "expected_answer" and "tolerance"
 
 Difficulty spread: 25% EASY, 50% MEDIUM, 25% HARD.
 Questions must be academically rigorous, syllabus-level, and unambiguous."""
@@ -374,23 +384,45 @@ Questions must be academically rigorous, syllabus-level, and unambiguous."""
 
         questions = []
         for i, q in enumerate(ai_questions[:count]):
-            opts = q.get('opts', [])
-            correct = int(q.get('correct', 0))
-            qtype = q.get('qtype', 'MCQ')
-            if len(opts) < 2 or correct not in range(len(opts)):
-                continue
+            qtype = str(q.get('qtype', 'MCQ')).strip().upper()
             diff_raw = q.get('diff', 'MEDIUM')
-            questions.append({
+            item = {
                 'id': i,
                 'q': q.get('q', ''),
-                'opts': opts,
-                'correct': correct,
                 'diff': f"{qtype.replace('_',' ')} · {diff_raw} · +4/−1",
                 'hint': q.get('hint', f'Think carefully about {topic}.'),
-                'explain': q.get('explain', f'The correct answer is: {opts[correct]}'),
+                'explain': q.get('explain', 'Review the concept and compare with the expected answer.'),
                 'card_id': None,
                 'qtype': qtype,
-            })
+            }
+
+            if qtype in ('SHORT_ANSWER', 'NUMERICAL'):
+                expected = str(q.get('expected_answer', '')).strip()
+                if not expected:
+                    continue
+                item['expected_answer'] = expected
+                if qtype == 'SHORT_ANSWER':
+                    kws = q.get('keywords', [])
+                    item['keywords'] = kws if isinstance(kws, list) else []
+                else:
+                    try:
+                        item['tolerance'] = float(q.get('tolerance', 0.01))
+                    except (TypeError, ValueError):
+                        item['tolerance'] = 0.01
+            else:
+                opts = q.get('opts', [])
+                try:
+                    correct = int(q.get('correct', 0))
+                except (TypeError, ValueError):
+                    correct = 0
+                if len(opts) < 2 or correct not in range(len(opts)):
+                    continue
+                item['opts'] = opts
+                item['correct'] = correct
+                if not q.get('explain'):
+                    item['explain'] = f"The correct answer is: {opts[correct]}"
+
+            questions.append(item)
 
         if not questions:
             return JsonResponse({'error': 'AI returned no valid questions. Try again.'}, status=500)
@@ -405,7 +437,10 @@ Questions must be academically rigorous, syllabus-level, and unambiguous."""
             'predicted_accuracy': round(avg_p * 100, 1),
             'max_score': n * 4,
             'confidence': 'medium',
-            'breakdown': {'MCQ': mcq_n, 'TRUE_FALSE': tf_n, 'FILL_BLANK': fitb_n, 'ASSERTION': ar_n},
+            'breakdown': {
+                'MCQ': mcq_n, 'TRUE_FALSE': tf_n, 'FILL_BLANK': fitb_n, 'ASSERTION': ar_n,
+                'SHORT_ANSWER': write_n, 'NUMERICAL': solve_n
+            },
         }
         return JsonResponse({'questions': questions, 'prediction': prediction, 'topic': topic, 'duration': duration})
 
@@ -638,6 +673,107 @@ RULES:
 
 
 @login_required
+@csrf_exempt
+@require_http_methods(['POST'])
+def grade_answer(request):
+    """
+    Teacher-style grading for subjective answers.
+
+    Body:
+    {
+      question, answer, qtype, expected_answer, keywords, tolerance
+    }
+    """
+    import os, json as _json, re
+    from groq import Groq
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    try:
+        body = _json.loads(request.body or '{}')
+    except _json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+
+    question = str(body.get('question', '')).strip()
+    answer = str(body.get('answer', '')).strip()
+    qtype = str(body.get('qtype', 'SHORT_ANSWER')).strip().upper()
+    expected = str(body.get('expected_answer', '')).strip()
+    keywords = body.get('keywords', [])
+    if not isinstance(keywords, list):
+        keywords = []
+    try:
+        tolerance = float(body.get('tolerance', 0.01))
+    except (TypeError, ValueError):
+        tolerance = 0.01
+
+    if not question or not answer:
+        return JsonResponse({'error': 'question and answer are required'}, status=400)
+
+    api_key = os.getenv('GROQ_API_KEY')
+    if not api_key:
+        return JsonResponse({'error': 'Groq API key not configured'}, status=500)
+
+    prompt = f"""You are a strict but supportive school/college teacher.
+Evaluate the student's answer semantically, not by exact wording.
+
+Return ONLY valid JSON:
+{{
+  "is_correct": true/false,
+  "score": number from 0 to 1,
+  "feedback": "2-4 sentence teacher feedback"
+}}
+
+Question type: {qtype}
+Question: {question}
+Student answer: {answer}
+Reference expected answer: {expected}
+Reference keywords: {keywords}
+Numeric tolerance (only for NUMERICAL): {tolerance}
+
+Rules:
+- For SHORT_ANSWER: mark correct if core concepts are present, even with different wording.
+- For NUMERICAL: accept if value is within tolerance, or mathematically equivalent expression.
+- Penalize factual errors.
+- feedback should mention what was right and what to improve.
+"""
+
+    try:
+        client = Groq(api_key=api_key)
+        resp = client.chat.completions.create(
+            model='llama-3.3-70b-versatile',
+            messages=[
+                {'role': 'system', 'content': 'You are an expert examiner. Output only valid JSON.'},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.1,
+            max_tokens=500,
+        )
+        raw = resp.choices[0].message.content.strip()
+        raw = re.sub(r'^```(?:json)?\s*', '', raw)
+        raw = re.sub(r'\s*```$', '', raw)
+        data = _json.loads(raw)
+
+        score = data.get('score', 0)
+        try:
+            score = max(0.0, min(1.0, float(score)))
+        except (TypeError, ValueError):
+            score = 0.0
+
+        is_correct = bool(data.get('is_correct', False))
+        if not isinstance(data.get('is_correct', None), bool):
+            is_correct = score >= 0.6
+
+        feedback = str(data.get('feedback', '')).strip() or 'Answer evaluated.'
+        return JsonResponse({
+            'is_correct': is_correct,
+            'score': round(score, 3),
+            'feedback': feedback,
+        })
+    except Exception as exc:
+        return JsonResponse({'error': str(exc)}, status=500)
+
+
+@login_required
 @require_http_methods(['GET'])
 def video_search(request):
     """
@@ -651,6 +787,7 @@ def video_search(request):
     import os, json as _json, re, requests as _req
     from concurrent.futures import ThreadPoolExecutor, as_completed
     from urllib.parse import quote
+    from django.core.cache import cache
     from groq import Groq
     from dotenv import load_dotenv
     load_dotenv()
@@ -663,13 +800,19 @@ def video_search(request):
     if not api_key:
         return JsonResponse({'error': 'Groq API key not configured'}, status=500)
 
+    topic_key = re.sub(r'\s+', ' ', topic).strip().lower()
+    cache_key = f"video_search:v2:{request.user.id}:{topic_key}"
+    cached = cache.get(cache_key)
+    if cached:
+        return JsonResponse(cached)
+
     def _validate_video(vid_id):
         """Return real thumbnail URL if video exists, else None."""
         try:
             r = _req.get(
                 'https://www.youtube.com/oembed',
                 params={'url': f'https://www.youtube.com/watch?v={vid_id}', 'format': 'json'},
-                timeout=5,
+                timeout=3,
             )
             if r.status_code == 200:
                 return r.json().get('thumbnail_url')
@@ -677,7 +820,7 @@ def video_search(request):
             pass
         return None
 
-    prompt = f"""Recommend exactly 10 high-quality educational YouTube videos about "{topic}".
+    prompt = f"""Recommend exactly 8 high-quality educational YouTube videos about "{topic}".
 
 Mix languages: include at least 3 videos in Hindi and the rest in English.
 Spread difficulty evenly — include at least 2 Beginner, 4 Intermediate, and 2 Advanced videos.
@@ -708,7 +851,7 @@ Example format:
                 {'role': 'user', 'content': prompt},
             ],
             temperature=0.2,
-            max_tokens=2048,
+            max_tokens=1536,
         )
         raw = resp.choices[0].message.content.strip()
         raw = re.sub(r'^```(?:json)?\s*', '', raw)
@@ -719,7 +862,7 @@ Example format:
         # Build candidate list — filter obviously bad IDs first
         _level_order = {'Beginner': 0, 'Intermediate': 1, 'Advanced': 2}
         candidates = []
-        for v in videos_raw[:10]:
+        for v in videos_raw[:8]:
             vid_id = str(v.get('youtube_id', '')).strip()
             valid  = bool(re.match(r'^[A-Za-z0-9_-]{11}$', vid_id))
             candidates.append({
@@ -767,7 +910,9 @@ Example format:
         if not videos:
             return JsonResponse({'error': 'No video recommendations found. Try a different topic.'}, status=500)
 
-        return JsonResponse({'videos': videos, 'topic': topic})
+        payload = {'videos': videos, 'topic': topic}
+        cache.set(cache_key, payload, 60 * 30)
+        return JsonResponse(payload)
 
     except _json.JSONDecodeError:
         return JsonResponse({'error': 'Could not parse AI response. Please try again.'}, status=500)

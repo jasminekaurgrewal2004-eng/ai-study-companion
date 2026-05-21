@@ -8,6 +8,7 @@ urlpatterns = [
     # API Endpoints
     path('api/auth/signup/', views.api_signup, name='api_signup'),
     path('api/auth/login/', views.api_login, name='api_login'),
+    path('api/auth/google/', views.api_google_login, name='api_google_login'),
     path('api/auth/logout/', views.api_logout, name='logout'),
     path('api/profile/', views.api_profile, name='api_profile'),
     path('api/journals/', views.api_journals, name='api_journals'),

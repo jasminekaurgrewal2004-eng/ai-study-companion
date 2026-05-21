@@ -183,3 +183,25 @@ models/            # saved .pkl / .npy artefacts (gitignored binaries)
 data/
   raw/             # synthetic_reviews.csv, synthetic_quizzes.csv
 ```
+
+## Deployment (Render / Railway)
+
+### 1. Required environment variables
+
+- `SECRET_KEY` = strong random string
+- `DEBUG` = `False`
+- `ALLOWED_HOSTS` = your domain(s), comma-separated
+- `DATABASE_URL` = managed Postgres connection URL
+- `CORS_ALLOWED_ORIGINS` = frontend origin(s), comma-separated
+- `CSRF_TRUSTED_ORIGINS` = `https://...` origins, comma-separated
+
+### 2. Build and run commands
+
+- Build: `./build.sh`
+- Start: `gunicorn lumen_project.wsgi:application`
+
+### 3. One-time deploy notes
+
+- Ensure your platform provisions a Postgres database and sets `DATABASE_URL`.
+- `build.sh` automatically runs migrations and collectstatic.
+- If your hostname changes, update `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.

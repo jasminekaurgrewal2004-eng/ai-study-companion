@@ -336,7 +336,7 @@
     <div class="card" style="padding:28px 32px;margin-bottom:20px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
         <div class="eyebrow">Step 3 · Questions per type</div>
-        <div style="font-size:13px;color:var(--ink-soft);">Total: <span id="mock-total-badge" style="font-weight:700;color:var(--ink);">30</span> questions</div>
+        <div style="font-size:13px;color:var(--ink-soft);">Total: <span id="mock-total-badge" style="font-weight:700;color:var(--ink);">36</span> questions</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
 
@@ -410,6 +410,42 @@
           <input type="range" id="mock-ar-range" min="0" max="20" value="4"
             oninput="syncMockType('ar',this.value)"
             style="width:100%;accent-color:var(--coral);">
+        </div>
+
+        <!-- Writing -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#22c55e;">WRITING</div>
+              <div style="font-size:11px;color:var(--ink-soft);">short/descriptive answers</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('write',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-write-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">4</span>
+              <button onclick="adjustMockType('write',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-write-range" min="0" max="20" value="4"
+            oninput="syncMockType('write',this.value)"
+            style="width:100%;accent-color:#22c55e;">
+        </div>
+
+        <!-- Solving -->
+        <div style="padding:16px 18px;border-radius:12px;border:1.5px solid rgba(14,165,233,0.4);background:rgba(14,165,233,0.06);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#0ea5e9;">SOLVING</div>
+              <div style="font-size:11px;color:var(--ink-soft);">numerical/problem-based</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustMockType('solve',-1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">−</button>
+              <span id="mock-solve-val" style="font-size:20px;font-weight:700;font-family:'Playfair Display';min-width:28px;text-align:center;">2</span>
+              <button onclick="adjustMockType('solve',+1)" style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:16px;cursor:pointer;display:grid;place-items:center;">+</button>
+            </div>
+          </div>
+          <input type="range" id="mock-solve-range" min="0" max="20" value="2"
+            oninput="syncMockType('solve',this.value)"
+            style="width:100%;accent-color:#0ea5e9;">
         </div>
 
       </div>
@@ -830,7 +866,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div id="vid-results-label" style="font-size:14px;font-weight:600;color:var(--ink);"></div>
       </div>
-      <div id="vid-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;"></div>
+      <div id="vid-cards" style="display:block;"></div>
     </div>
 
     <!-- Error state (hidden by default) -->
@@ -1109,49 +1145,55 @@
 
         <!-- ── NOTES PANEL ─────────────────────────────────────────────── -->
         <div id="syl-notes-panel">
-
         <!-- Add content controls -->
         <div class="syl-add-controls">
-          <div class="syl-add-group">
-            <button class="syl-add-btn" onclick="showAddNoteForm()" id="syl-btn-note">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Add Note
-            </button>
-            <button class="syl-add-btn" onclick="showAddImageForm()" id="syl-btn-image">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              Add Image
-            </button>
-            <button class="syl-add-btn" onclick="showAddFileForm()" id="syl-btn-file">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Add File
-            </button>
-            <button class="syl-add-btn" onclick="showAddFileForm('pdf')" id="syl-btn-pdf">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-              Add PDF
-            </button>
-            <button class="syl-add-btn" onclick="showAddFileForm('audio')" id="syl-btn-audio">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              Add Audio
-            </button>
-            <button class="syl-add-btn" onclick="showAddFileForm('video')" id="syl-btn-video">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              Add Video
-            </button>
-            <button class="syl-add-btn" onclick="showAddLinkForm()" id="syl-btn-link">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-              Add Link
-            </button>
-            <button class="syl-add-btn syl-ai-btn" onclick="generateInsights()" id="syl-btn-insights">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-              ✨ Generate AI Study Plan
-            </button>
-            <button class="syl-add-btn syl-monthly-btn" onclick="showMonthlyPlanForm()" id="syl-btn-monthly">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              📅 Monthly Plan
-            </button>
+          <div class="syl-add-section">
+            <div class="syl-add-section-title">Add Materials</div>
+            <div class="syl-add-group syl-material-group">
+              <button class="syl-add-btn" onclick="showAddNoteForm()" id="syl-btn-note">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Add Note
+              </button>
+              <button class="syl-add-btn" onclick="showAddImageForm()" id="syl-btn-image">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Add Image
+              </button>
+              <button class="syl-add-btn" onclick="showAddFileForm()" id="syl-btn-file">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Add File
+              </button>
+              <button class="syl-add-btn" onclick="showAddFileForm('pdf')" id="syl-btn-pdf">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+                Add PDF
+              </button>
+              <button class="syl-add-btn" onclick="showAddFileForm('audio')" id="syl-btn-audio">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                Add Audio
+              </button>
+              <button class="syl-add-btn" onclick="showAddFileForm('video')" id="syl-btn-video">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                Add Video
+              </button>
+              <button class="syl-add-btn" onclick="showAddLinkForm()" id="syl-btn-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                Add Link
+              </button>
+            </div>
+          </div>
+          <div class="syl-add-section">
+            <div class="syl-add-section-title">AI Tools</div>
+            <div class="syl-add-group syl-ai-tools-group">
+              <button class="syl-add-btn syl-ai-btn" onclick="generateInsights()" id="syl-btn-insights">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                ? Generate AI Study Plan
+              </button>
+              <button class="syl-add-btn syl-monthly-btn" onclick="showMonthlyPlanForm()" id="syl-btn-monthly">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                ?? Monthly Plan
+              </button>
+            </div>
           </div>
         </div>
-
         <!-- Add Note Form (hidden by default) -->
         <div class="syl-note-form" id="syl-note-form" style="display:none;">
           <textarea class="syl-note-textarea" id="syl-note-text" placeholder="Type anything here — lecture notes, concepts, code snippets, case summaries, vocabulary, recipes, research findings, chapter summaries, or any material you want to learn." rows="5"></textarea>
@@ -1566,3 +1608,4 @@
 </section>
 
 {% endblock %}
+

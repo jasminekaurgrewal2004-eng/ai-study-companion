@@ -9,6 +9,7 @@ urlpatterns = [
     path('smart-topics/', views.smart_topics, name='analytics_smart_topics'),
     path('generate-quiz/', views.generate_quiz, name='analytics_generate_quiz'),
     path('generate-mock/', views.generate_mock, name='analytics_generate_mock'),
+    path('grade-answer/', views.grade_answer, name='analytics_grade_answer'),
     path('test-insights/', views.test_insights, name='analytics_test_insights'),
     path('video-search/', views.video_search, name='analytics_video_search'),
     path('study-time/', views.study_time, name='analytics_study_time'),

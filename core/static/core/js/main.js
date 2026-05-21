@@ -223,11 +223,13 @@ let _selectedQCount = 5;                     // selected question count
 let _quizDuration = 600;                     // seconds — 600 = quick quiz, longer for mock
 let _mockTopic = '';
 let _mockDuration = 60;
-let _mockCount = 30;
+let _mockCount = 36;
 let _mockMcq  = 12;
 let _mockTf   = 8;
 let _mockFitb = 6;
 let _mockAr   = 4;
+let _mockWrite = 4;
+let _mockSolve = 2;
 
 let currentQ = 0;
 let answers = Array(questions.length).fill(null); // index of selected option, or null
@@ -235,6 +237,64 @@ let flagged = new Set();
 let timeLeft = 600; // 10 min
 let timerInterval = null;
 let startTime = 0;
+
+function _isSubjectiveQuestion(q){
+  return q && (q.qtype === 'SHORT_ANSWER' || q.qtype === 'NUMERICAL');
+}
+
+function _isAnsweredAt(i){
+  const q = questions[i];
+  const a = answers[i];
+  if (a === null || a === undefined) return false;
+  if (_isSubjectiveQuestion(q)) return !!(a.text && a.text.trim());
+  return typeof a === 'number';
+}
+
+function _isCorrectAt(i){
+  const q = questions[i];
+  const a = answers[i];
+  if (!_isAnsweredAt(i)) return false;
+  if (_isSubjectiveQuestion(q)) return !!a.isCorrect;
+  return a === q.correct;
+}
+
+function _evaluateSubjective(q, userText){
+  const text = (userText || '').trim();
+  if (!text) return { isCorrect: false, explain: 'Please write an answer.' };
+
+  if (q.qtype === 'NUMERICAL') {
+    const u = Number(text.replace(/,/g, ''));
+    const e = Number((q.expected_answer || '').toString().replace(/,/g, ''));
+    const tol = Number(q.tolerance || 0.01);
+    const ok = Number.isFinite(u) && Number.isFinite(e) && Math.abs(u - e) <= tol;
+    return {
+      isCorrect: ok,
+      explain: ok
+        ? (q.explain || 'Correct numerical answer.')
+        : (q.explain || `Expected answer: ${q.expected_answer}`)
+    };
+  }
+
+  const normalized = text.toLowerCase();
+  const expected = (q.expected_answer || '').toString().toLowerCase().trim();
+  if (expected && normalized === expected) {
+    return { isCorrect: true, explain: q.explain || 'Excellent written response.' };
+  }
+
+  const keywords = Array.isArray(q.keywords) ? q.keywords.filter(Boolean).map(k => k.toLowerCase()) : [];
+  if (!keywords.length) {
+    return {
+      isCorrect: normalized.length >= 20,
+      explain: q.explain || 'Answer saved. Use the explanation to self-check.'
+    };
+  }
+  const hits = keywords.filter(k => normalized.includes(k)).length;
+  const ratio = hits / keywords.length;
+  return {
+    isCorrect: ratio >= 0.6,
+    explain: q.explain || `Keyword match: ${hits}/${keywords.length}.`
+  };
+}
 
 function startTest(){
   // Swap in ML questions if startSmartQuiz staged them, else reset to defaults
@@ -280,52 +340,103 @@ function renderQuestion(){
   document.getElementById('q-text').innerHTML = q.q;
   document.getElementById('progressFill').style.width = `${((currentQ+1)/questions.length)*100}%`;
 
-  const keys = ['A','B','C','D'];
-  const optsHtml = q.opts.map((o,i)=>{
-    const selected = answers[currentQ]!==null;
-    let cls = 'option';
-    if(selected){
-      if(i===q.correct) cls += ' correct';
-      else if(i===answers[currentQ]) cls += ' wrong';
-    }
-    return `<button class="${cls}" onclick="selectOption(${i})" ${selected?'disabled':''}>
-      <span class="opt-key">${keys[i]}</span>
-      <span>${o}</span>
-      <span class="opt-status check">✓</span>
-      <span class="opt-status cross">✗</span>
-    </button>`;
-  }).join('');
+  const selected = _isAnsweredAt(currentQ);
+  let optsHtml = '';
+  if (_isSubjectiveQuestion(q)) {
+    const val = answers[currentQ] && answers[currentQ].text ? escapeHtml(answers[currentQ].text) : '';
+    const ph = q.qtype === 'NUMERICAL' ? 'Enter final numeric answer (e.g. 42 or 3.14)' : 'Write your answer here...';
+    optsHtml = `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <textarea id="subjective-answer-input" ${selected ? 'disabled' : ''} style="width:100%;min-height:120px;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg-soft);color:var(--ink);font-size:14px;resize:vertical;" placeholder="${ph}">${val}</textarea>
+        <div style="font-size:12px;color:var(--ink-soft);">
+          ${q.qtype === 'NUMERICAL' ? 'Numeric answers are teacher-graded with tolerance checks.' : 'Written answers are teacher-graded for concept understanding.'}
+        </div>
+        <button class="btn btn-primary" onclick="submitSubjectiveAnswer()" ${selected ? 'disabled' : ''} style="align-self:flex-start;">Submit Answer</button>
+      </div>`;
+  } else {
+    const keys = ['A','B','C','D'];
+    optsHtml = q.opts.map((o,i)=>{
+      let cls = 'option';
+      if(selected){
+        if(i===q.correct) cls += ' correct';
+        else if(i===answers[currentQ]) cls += ' wrong';
+      }
+      return `<button class="${cls}" onclick="selectOption(${i})" ${selected?'disabled':''}>
+        <span class="opt-key">${keys[i] || (i+1)}</span>
+        <span>${o}</span>
+        <span class="opt-status check">?</span>
+        <span class="opt-status cross">?</span>
+      </button>`;
+    }).join('');
+  }
   document.getElementById('q-options').innerHTML = optsHtml;
 
   const fb = document.getElementById('feedback');
-  if(answers[currentQ]!==null){
-    const isCorrect = answers[currentQ]===q.correct;
+  if(_isAnsweredAt(currentQ)){
+    const isCorrect = _isCorrectAt(currentQ);
     fb.className = 'feedback show ' + (isCorrect?'correct':'wrong');
-    document.getElementById('fb-title').innerHTML = isCorrect ? '✨ Correct!' : '🤔 Not quite';
-    document.getElementById('fb-text').textContent = q.explain;
+    document.getElementById('fb-title').innerHTML = isCorrect ? 'Correct!' : 'Not quite';
+    const subjectiveExplain = _isSubjectiveQuestion(q) && answers[currentQ] ? (answers[currentQ].explain || q.explain) : q.explain;
+    document.getElementById('fb-text').textContent = subjectiveExplain;
   } else {
     fb.className = 'feedback';
   }
 
   const nextBtn = document.getElementById('nextBtn');
-  nextBtn.textContent = currentQ === questions.length-1 ? 'Submit →' : 'Next →';
+  nextBtn.textContent = currentQ === questions.length-1 ? 'Submit ?' : 'Next ?';
 }
 
 function selectOption(idx){
-  if(answers[currentQ]!==null) return;
+  if(_isAnsweredAt(currentQ)) return;
   answers[currentQ] = idx;
   renderQuestion();
   renderMap();
   updateSummary();
 }
 
+async function submitSubjectiveAnswer(){
+  const q = questions[currentQ];
+  if (!_isSubjectiveQuestion(q) || _isAnsweredAt(currentQ)) return;
+  const el = document.getElementById('subjective-answer-input');
+  const text = el ? el.value.trim() : '';
+  if (!text) return;
+
+  let result = null;
+  try {
+    const res = await fetch('/api/analytics/grade-answer/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        question: q.q,
+        answer: text,
+        qtype: q.qtype,
+        expected_answer: q.expected_answer || '',
+        keywords: q.keywords || [],
+        tolerance: q.tolerance || 0.01,
+      })
+    });
+    const data = await res.json();
+    if (res.ok && typeof data.is_correct === 'boolean') {
+      result = { isCorrect: data.is_correct, explain: data.feedback || q.explain };
+    }
+  } catch (_) {
+    // Fallback below
+  }
+
+  if (!result) result = _evaluateSubjective(q, text);
+  answers[currentQ] = { text, isCorrect: result.isCorrect, explain: result.explain };
+  renderQuestion();
+  renderMap();
+  updateSummary();
+}
 function renderMap(){
   const map = document.getElementById('qMap');
   map.innerHTML = questions.map((q,i)=>{
     let cls='q-dot';
     if(i===currentQ) cls+=' cur';
-    else if(answers[i]!==null){
-      cls += answers[i]===q.correct ? ' answered' : ' wrong';
+    else if(_isAnsweredAt(i)){
+      cls += _isCorrectAt(i) ? ' answered' : ' wrong';
     }
     if(flagged.has(i)) cls+=' flagged';
     return `<span class="${cls}" onclick="goToQ(${i})">${i+1}</span>`;
@@ -335,8 +446,8 @@ function renderMap(){
 function goToQ(i){currentQ=i;renderQuestion();renderMap();}
 
 function updateSummary(){
-  const answered = answers.filter(a=>a!==null).length;
-  const correct = answers.filter((a,i)=>a!==null && a===questions[i].correct).length;
+  const answered = answers.filter((_,i)=>_isAnsweredAt(i)).length;
+  const correct = answers.filter((_,i)=>_isCorrectAt(i)).length;
   const wrong = answered - correct;
   const marks = correct*4 - wrong*1;
   document.getElementById('ms-answered').textContent = `${answered} / ${questions.length}`;
@@ -366,15 +477,16 @@ function showHint(){
 
 function submitTest(){
   clearInterval(timerInterval);
-  const correct = answers.filter((a,i)=>a!==null && a===questions[i].correct).length;
-  const wrong = answers.filter((a,i)=>a!==null && a!==questions[i].correct).length;
-  const skipped = answers.filter(a=>a===null).length;
+  const correct = answers.filter((_,i)=>_isCorrectAt(i)).length;
+  const answered = answers.filter((_,i)=>_isAnsweredAt(i)).length;
+  const wrong = answered - correct;
+  const skipped = questions.length - answered;
   const score = correct*4 - wrong*1;
   const accuracy = correct+wrong>0 ? Math.round(correct/(correct+wrong)*100) : 0;
-  const elapsed = 600 - timeLeft;
+  const elapsed = _quizDuration - timeLeft;
   const mins = Math.floor(elapsed/60), secs = elapsed%60;
-  const avg = answers.filter(a=>a!==null).length > 0
-    ? Math.floor(elapsed / answers.filter(a=>a!==null).length)
+  const avg = answered > 0
+    ? Math.floor(elapsed / answered)
     : 0;
 
   document.getElementById('resultScore').textContent = score;
@@ -438,13 +550,22 @@ function submitTest(){
   // Generate actionable AI Insights and Study Plan
   const wrongQs = [];
   answers.forEach((a, i) => {
-    if (a !== null && a !== questions[i].correct) {
-      wrongQs.push({
-        q: questions[i].q,
-        correct_answer: questions[i].opts[questions[i].correct],
-        your_answer: questions[i].opts[a]
-      });
+    if (!_isAnsweredAt(i) || _isCorrectAt(i)) return;
+    const q = questions[i];
+    let correctAns = '';
+    let yourAns = '';
+    if (_isSubjectiveQuestion(q)) {
+      correctAns = q.expected_answer || q.explain || 'See explanation';
+      yourAns = (a && a.text) ? a.text : 'No answer';
+    } else {
+      correctAns = q.opts[q.correct];
+      yourAns = q.opts[a];
     }
+    wrongQs.push({
+      q: q.q,
+      correct_answer: correctAns,
+      your_answer: yourAns
+    });
   });
 
   generateTestInsights({
@@ -2876,20 +2997,22 @@ function setMockCount(n, btnEl){
 }
 
 function adjustMockType(type, delta){
-  const map = { mcq:'_mockMcq', tf:'_mockTf', fitb:'_mockFitb', ar:'_mockAr' };
-  const maxMap = { mcq:30, tf:20, fitb:20, ar:15 };
+  const map = { mcq:'_mockMcq', tf:'_mockTf', fitb:'_mockFitb', ar:'_mockAr', write:'_mockWrite', solve:'_mockSolve' };
+  const maxMap = { mcq:30, tf:20, fitb:20, ar:15, write:15, solve:15 };
   if(!map[type]) return;
-  let val = { mcq:_mockMcq, tf:_mockTf, fitb:_mockFitb, ar:_mockAr }[type];
+  let val = { mcq:_mockMcq, tf:_mockTf, fitb:_mockFitb, ar:_mockAr, write:_mockWrite, solve:_mockSolve }[type];
   val = Math.max(0, Math.min(maxMap[type], val + delta));
-  if(type==='mcq')  _mockMcq  = val;
-  if(type==='tf')   _mockTf   = val;
-  if(type==='fitb') _mockFitb = val;
-  if(type==='ar')   _mockAr   = val;
+  if(type==='mcq')   _mockMcq = val;
+  if(type==='tf')    _mockTf = val;
+  if(type==='fitb')  _mockFitb = val;
+  if(type==='ar')    _mockAr = val;
+  if(type==='write') _mockWrite = val;
+  if(type==='solve') _mockSolve = val;
   const numEl = document.getElementById(`mock-${type}-val`);
   const rangeEl = document.getElementById(`mock-${type}-range`);
-  if(numEl)   numEl.textContent = val;
-  if(rangeEl) rangeEl.value    = val;
-  _mockCount = _mockMcq + _mockTf + _mockFitb + _mockAr;
+  if(numEl) numEl.textContent = val;
+  if(rangeEl) rangeEl.value = val;
+  _mockCount = _mockMcq + _mockTf + _mockFitb + _mockAr + _mockWrite + _mockSolve;
   const badge = document.getElementById('mock-total-badge');
   if(badge) badge.textContent = _mockCount;
   updateMockPreview();
@@ -2897,18 +3020,19 @@ function adjustMockType(type, delta){
 
 function syncMockType(type, value){
   const val = parseInt(value, 10);
-  if(type==='mcq')  _mockMcq  = val;
-  if(type==='tf')   _mockTf   = val;
-  if(type==='fitb') _mockFitb = val;
-  if(type==='ar')   _mockAr   = val;
+  if(type==='mcq')   _mockMcq = val;
+  if(type==='tf')    _mockTf = val;
+  if(type==='fitb')  _mockFitb = val;
+  if(type==='ar')    _mockAr = val;
+  if(type==='write') _mockWrite = val;
+  if(type==='solve') _mockSolve = val;
   const numEl = document.getElementById(`mock-${type}-val`);
   if(numEl) numEl.textContent = val;
-  _mockCount = _mockMcq + _mockTf + _mockFitb + _mockAr;
+  _mockCount = _mockMcq + _mockTf + _mockFitb + _mockAr + _mockWrite + _mockSolve;
   const badge = document.getElementById('mock-total-badge');
   if(badge) badge.textContent = _mockCount;
   updateMockPreview();
 }
-
 function updateMockPreview(){
   const inp = document.getElementById('mock-topic-input');
   if(inp) _mockTopic = inp.value.trim();
@@ -2923,11 +3047,13 @@ function updateMockPreview(){
   const tf    = _mockTf;
   const fitb  = _mockFitb;
   const ar    = _mockAr;
-  _mockCount  = mcq + tf + fitb + ar;
+  const write = _mockWrite;
+  const solve = _mockSolve;
+  _mockCount  = mcq + tf + fitb + ar + write + solve;
   const label = _mockTopic.replace(/\b\w/g,c=>c.toUpperCase());
   if(preview) preview.innerHTML = `
     <div style="font-family:'Playfair Display';font-size:18px;font-weight:700;margin-bottom:14px;color:var(--ink);">${label} · ${_mockCount} Questions · ${_mockDuration} min</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
       <div style="padding:12px 16px;border-radius:10px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);">
         <div style="font-size:11px;color:#6366f1;font-weight:600;margin-bottom:2px;">MCQ</div>
         <div style="font-size:22px;font-weight:700;font-family:'Playfair Display';">${mcq}</div>
@@ -2948,6 +3074,16 @@ function updateMockPreview(){
         <div style="font-size:22px;font-weight:700;font-family:'Playfair Display';">${ar}</div>
         <div style="font-size:11px;color:var(--ink-soft);">evaluate both statements</div>
       </div>
+      <div style="padding:12px 16px;border-radius:10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);">
+        <div style="font-size:11px;color:#22c55e;font-weight:600;margin-bottom:2px;">WRITING</div>
+        <div style="font-size:22px;font-weight:700;font-family:'Playfair Display';">${write}</div>
+        <div style="font-size:11px;color:var(--ink-soft);">short/descriptive</div>
+      </div>
+      <div style="padding:12px 16px;border-radius:10px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.3);">
+        <div style="font-size:11px;color:#0ea5e9;font-weight:600;margin-bottom:2px;">SOLVING</div>
+        <div style="font-size:22px;font-weight:700;font-family:'Playfair Display';">${solve}</div>
+        <div style="font-size:11px;color:var(--ink-soft);">numerical/problem-based</div>
+      </div>
     </div>`;
   if(btn){
     btn.disabled=false;
@@ -2964,7 +3100,7 @@ function generateMock(){
   const btn = document.getElementById('generate-mock-btn');
   if(btn){ btn.textContent='Generating your mock test… (this may take 15–30s)'; btn.disabled=true; btn.style.opacity='0.7'; }
 
-  fetch(`/api/analytics/generate-mock/?topic=${encodeURIComponent(_mockTopic)}&mcq=${_mockMcq}&tf=${_mockTf}&fitb=${_mockFitb}&ar=${_mockAr}&duration=${_mockDuration}`)
+  fetch(`/api/analytics/generate-mock/?topic=${encodeURIComponent(_mockTopic)}&mcq=${_mockMcq}&tf=${_mockTf}&fitb=${_mockFitb}&ar=${_mockAr}&write=${_mockWrite}&solve=${_mockSolve}&duration=${_mockDuration}`)
     .then(r=>r.json())
     .then(data=>{
       if(data.error || !data.questions || data.questions.length===0){
@@ -2978,9 +3114,12 @@ function generateMock(){
         correct: q.correct,
         diff: q.diff || 'MCQ · MEDIUM · +4/−1',
         hint: q.hint || `Think carefully about ${_mockTopic}.`,
-        explain: q.explain || `The correct answer is: ${q.opts[q.correct]}`,
+        explain: q.explain || (q.opts ? `The correct answer is: ${q.opts[q.correct]}` : 'Review the expected answer and explanation.'),
         card_id: null,
         qtype: q.qtype || 'MCQ',
+        expected_answer: q.expected_answer || '',
+        keywords: q.keywords || [],
+        tolerance: q.tolerance || 0.01,
       }));
       _smartQuizMeta = { topic: _mockTopic, prediction: data.prediction };
       _quizDuration = _mockDuration * 60;
@@ -3882,6 +4021,9 @@ const _vidLevelColors = {
   Intermediate: { bg: 'rgba(251,191,36,0.12)',  color: 'var(--gold)',  border: 'rgba(251,191,36,0.3)'  },
   Advanced:     { bg: 'rgba(251,113,133,0.12)', color: 'var(--coral)', border: 'rgba(251,113,133,0.3)' },
 };
+const _vidSearchCache = new Map();
+const _VID_CACHE_TTL_MS = 30 * 60 * 1000;
+let _vidReqController = null;
 
 function _vidSetState(state) {
   document.getElementById('vid-empty-state').style.display   = state === 'empty'   ? 'block' : 'none';
@@ -3894,12 +4036,23 @@ function searchVideos() {
   const inp = document.getElementById('vid-topic-input');
   const topic = inp ? inp.value.trim() : '';
   if (!topic) { inp && inp.focus(); return; }
+  const topicKey = topic.toLowerCase().replace(/\s+/g, ' ').trim();
 
   const btn = document.getElementById('vid-search-btn');
-  if (btn) { btn.textContent = 'Searching…'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Searching...'; btn.disabled = true; }
   _vidSetState('loading');
 
-  fetch(`/api/analytics/video-search/?topic=${encodeURIComponent(topic)}`)
+  const cached = _vidSearchCache.get(topicKey);
+  if (cached && (Date.now() - cached.ts) < _VID_CACHE_TTL_MS) {
+    if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find Videos'; btn.disabled = false; }
+    _vidRenderResults(cached.videos, cached.topic || topic);
+    return;
+  }
+
+  if (_vidReqController) _vidReqController.abort();
+  _vidReqController = new AbortController();
+
+  fetch(`/api/analytics/video-search/?topic=${encodeURIComponent(topic)}`, { signal: _vidReqController.signal })
     .then(r => r.json())
     .then(data => {
       if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find Videos'; btn.disabled = false; }
@@ -3908,9 +4061,11 @@ function searchVideos() {
         _vidSetState('error');
         return;
       }
-      _vidRenderResults(data.videos, data.topic);
+      _vidSearchCache.set(topicKey, { ts: Date.now(), topic: data.topic || topic, videos: data.videos });
+      _vidRenderResults(data.videos, data.topic || topic);
     })
-    .catch(() => {
+    .catch((err) => {
+      if (err && err.name === 'AbortError') return;
       if (btn) { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Find Videos'; btn.disabled = false; }
       document.getElementById('vid-error-msg').textContent = 'Could not connect. Please check your connection and try again.';
       _vidSetState('error');
@@ -3942,7 +4097,7 @@ function _vidCard(v, idx) {
   const isSearch = !v.thumbnail;
   const isHindi  = v.lang === 'Hindi';
   const langDot  = isHindi ? '#f97316' : '#3b82f6';
-  const langLabel = isHindi ? '· Hindi' : '· English';
+  const langLabel = isHindi ? 'Hindi' : 'English';
 
   const thumbInner = v.thumbnail
     ? `<img src="${v.thumbnail}" alt="${escapeHtml(v.title)}">`
@@ -4239,3 +4394,9 @@ async function loadDashboardStats() {
 }
 document.addEventListener('DOMContentLoaded', loadDashboardStats);
 document.addEventListener('DOMContentLoaded', loadDailyMission);
+
+
+
+
+
+

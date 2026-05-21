@@ -227,6 +227,31 @@
       transform: none;
       box-shadow: none;
     }
+    .google-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .google-btn:hover {
+      border-color: rgba(255,255,255,.28);
+      background: rgba(255,255,255,.07);
+    }
+    .google-btn[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+    }
 
     /* Footer link */
     .auth-toggle {
@@ -355,6 +380,16 @@
 
       <p id="login-error" class="error-msg"></p>
       <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="auth-divider">OR</div>
+      <button class="google-btn" id="google-login-btn" onclick="signInWithGoogle()">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6.1-2.8-6.1-6.2s2.8-6.2 6.1-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.6C16.8 3 14.6 2 12 2 6.9 2 2.8 6.2 2.8 11.3S6.9 20.6 12 20.6c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.8-.1-1.1H12z"/>
+          <path fill="#34A853" d="M2.8 11.3c0 1.7.6 3.2 1.6 4.4l3-2.3c-.4-.5-.7-1.3-.7-2.1s.3-1.5.7-2.1l-3-2.3c-1 1.2-1.6 2.7-1.6 4.4z"/>
+          <path fill="#FBBC05" d="M12 20.6c2.5 0 4.6-.8 6.2-2.2l-3-2.4c-.8.6-1.9 1-3.2 1-2.4 0-4.4-1.6-5.1-3.8l-3 2.3c1.6 3 4.7 5.1 8.1 5.1z"/>
+          <path fill="#4285F4" d="M18.2 18.4c1.8-1.7 2.9-4.2 2.9-7.1 0-.5 0-.8-.1-1.1H12v3.9h5.5c-.2 1-.7 2.4-1.8 3.4l2.5 1.9z"/>
+        </svg>
+        Continue with Google
+      </button>
 
       <div class="auth-toggle">
         Don't have an account? <a onclick="toggleForm()">Create one free</a>
@@ -389,7 +424,18 @@
 
   </div>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
+    const GOOGLE_CLIENT_ID = "{{ google_client_id|escapejs }}";
+    let googleInitialized = false;
+    const HOSTNAME = window.location.hostname;
+
+    // Google sign-in is strict about origin matching; normalize loopback host.
+    if (HOSTNAME === '127.0.0.1') {
+      const nextUrl = `${window.location.protocol}//localhost${window.location.port ? `:${window.location.port}` : ''}${window.location.pathname}${window.location.search}${window.location.hash}`;
+      window.location.replace(nextUrl);
+    }
+
     function toggleForm() {
       const login = document.getElementById('login-form-box');
       const signup = document.getElementById('signup-form-box');
@@ -408,6 +454,83 @@
       const el = document.getElementById(id);
       el.textContent = msg;
       el.style.display = 'block';
+    }
+
+    function initGoogleSignIn() {
+      if (!GOOGLE_CLIENT_ID || !window.google || googleInitialized) return;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential
+      });
+      googleInitialized = true;
+    }
+
+    function signInWithGoogle() {
+      const btn = document.getElementById('google-login-btn');
+      if (!GOOGLE_CLIENT_ID) {
+        showError('login-error', 'Google login is not configured yet. Add GOOGLE_CLIENT_ID in your server .env.');
+        return;
+      }
+      initGoogleSignIn();
+      if (!window.google || !googleInitialized) {
+        showError('login-error', 'Google sign-in did not load. Please refresh and try again.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Opening Google...';
+      google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed && notification.isNotDisplayed()) {
+          const reason = notification.getNotDisplayedReason ? notification.getNotDisplayedReason() : 'unknown';
+          showError('login-error', `Google sign-in not displayed (${reason}). Current origin: ${window.location.origin}`);
+        } else if (notification.isSkippedMoment && notification.isSkippedMoment()) {
+          const reason = notification.getSkippedReason ? notification.getSkippedReason() : 'unknown';
+          showError('login-error', `Google sign-in skipped (${reason}). Try again in an incognito window.`);
+        } else if (notification.isDismissedMoment && notification.isDismissedMoment()) {
+          const reason = notification.getDismissedReason ? notification.getDismissedReason() : 'unknown';
+          if (reason !== 'credential_returned') {
+            showError('login-error', `Google sign-in dismissed (${reason}).`);
+          }
+        }
+      });
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6.1-2.8-6.1-6.2s2.8-6.2 6.1-6.2c1.9 0 3.1.8 3.8 1.5l2.6-2.6C16.8 3 14.6 2 12 2 6.9 2 2.8 6.2 2.8 11.3S6.9 20.6 12 20.6c6.9 0 9.1-4.8 9.1-7.3 0-.5 0-.8-.1-1.1H12z"/>
+            <path fill="#34A853" d="M2.8 11.3c0 1.7.6 3.2 1.6 4.4l3-2.3c-.4-.5-.7-1.3-.7-2.1s.3-1.5.7-2.1l-3-2.3c-1 1.2-1.6 2.7-1.6 4.4z"/>
+            <path fill="#FBBC05" d="M12 20.6c2.5 0 4.6-.8 6.2-2.2l-3-2.4c-.8.6-1.9 1-3.2 1-2.4 0-4.4-1.6-5.1-3.8l-3 2.3c1.6 3 4.7 5.1 8.1 5.1z"/>
+            <path fill="#4285F4" d="M18.2 18.4c1.8-1.7 2.9-4.2 2.9-7.1 0-.5 0-.8-.1-1.1H12v3.9h5.5c-.2 1-.7 2.4-1.8 3.4l2.5 1.9z"/>
+          </svg>
+          Continue with Google`;
+      }, 1200);
+    }
+
+    async function handleGoogleCredential(response) {
+      const credential = response && response.credential ? response.credential : '';
+      if (!credential) {
+        showError('login-error', 'Google sign-in failed. Please try again.');
+        return;
+      }
+      document.getElementById('login-error').style.display = 'none';
+      try {
+        const res = await fetch('/api/auth/google/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ credential })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('asc-token', data.token || '');
+          localStorage.setItem('asc-user', JSON.stringify(data.user || {}));
+          window.location.href = '/';
+          return;
+        }
+        showError('login-error', data.msg || 'Google login failed.');
+      } catch (err) {
+        console.error('Google login fetch error:', err);
+        showError('login-error', 'Could not connect to the server. Is it running?');
+      }
     }
 
     async function doLogin() {
@@ -514,6 +637,8 @@
         }
       }
     });
+
+    window.addEventListener('load', initGoogleSignIn);
   </script>
 </body>
 </html>

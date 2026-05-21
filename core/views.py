@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 import json
 from .models import JournalEntry, ChatHistory, ChatSession, Syllabus, SyllabusItem, Flashcard, FlashcardReview, QuizAttempt, StudyPlan, StudyPlanTask, Reminder, StudentProfile
 from .ml_services import ForgettingCurvePredictor, ConfusionTopicAnalyzer, PerformanceRiskScorer
@@ -40,7 +42,9 @@ def dashboard(request):
 def login_page(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    return render(request, 'core/login.html')
+    return render(request, 'core/login.html', {
+        'google_client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+    })
 
 @csrf_exempt
 def api_signup(request):
@@ -160,6 +164,61 @@ def api_profile(request):
         return JsonResponse({'msg': 'Profile deleted'})
 
     return JsonResponse({'msg': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def api_google_login(request):
+    if request.method != 'POST':
+        return JsonResponse({'msg': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body or '{}')
+        credential = data.get('credential', '').strip()
+        if not credential:
+            return JsonResponse({'msg': 'Missing Google credential token'}, status=400)
+
+        google_client_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+        if not google_client_id:
+            return JsonResponse({'msg': 'Google login is not configured on the server'}, status=503)
+
+        token_info = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            google_client_id,
+        )
+        email = (token_info.get('email') or '').strip().lower()
+        email_verified = token_info.get('email_verified', False)
+        full_name = (token_info.get('name') or '').strip()
+        if not email or not email_verified:
+            return JsonResponse({'msg': 'Google account email is unavailable or unverified'}, status=400)
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            base_username = email.split('@')[0][:24] or 'user'
+            candidate = base_username
+            counter = 1
+            while User.objects.filter(username=candidate).exists():
+                candidate = f"{base_username}{counter}"
+                counter += 1
+            user = User.objects.create_user(username=candidate, email=email)
+            user.set_unusable_password()
+            user.save(update_fields=['password'])
+        elif full_name and not user.first_name:
+            user.first_name = full_name.split(' ')[0]
+            user.save(update_fields=['first_name'])
+
+        auth_login(request, user)
+        return JsonResponse({
+            'msg': 'Login successful',
+            'token': 'dummy-session-token',
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'plan': 'Free'
+            }
+        })
+    except ValueError:
+        return JsonResponse({'msg': 'Invalid Google token'}, status=400)
+    except Exception as e:
+        return JsonResponse({'msg': str(e)}, status=400)
 
 @login_required
 @csrf_exempt
